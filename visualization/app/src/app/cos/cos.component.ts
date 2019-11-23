@@ -11,8 +11,9 @@ export class CosComponent implements OnInit, AfterViewInit {
   @ViewChild('cos', { static: false }) canvas: ElementRef;
   @Input() width: number;
   @Input() height: number;
-  highestLayer = 0;
+  highestLayer = -1;
   layers: THREE.Mesh[] = [];
+  wall: THREE.Mesh;
   tag: THREE.Mesh;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
@@ -25,15 +26,19 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.scene = new THREE.Scene();
     this.addLayers();
     this.addGrid();
+    this.addMap();
     this.addTag();
+    this.addWall();
     this.setTagPosition(0, 700, 0);
   }
   ngAfterViewInit() {
-    this.camera = new THREE.PerspectiveCamera(90, this.width / this.height, 10, 10000);
+    this.camera = new THREE.PerspectiveCamera(90, this.width / this.height, 10, 100000);
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas.nativeElement });
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.camera.position.set(-2000, 3000, 4000);
-    this.controls.panSpeed = 10;
+    this.controls.panSpeed = 30;
+    this.controls.maxDistance = 10000;
+    this.controls.minDistance = 200;
     this.animate();
   }
 
@@ -58,10 +63,11 @@ export class CosComponent implements OnInit, AfterViewInit {
       new THREE.PlaneGeometry(7804, 3712),
       new THREE.MeshBasicMaterial({
         map: new THREE.TextureLoader().load("assets/img/untergeschoss.jpg"),
-        side: THREE.DoubleSide
+        //side: THREE.DoubleSide
       })
     );
     ug.rotation.x = -Math.PI / 2;
+    ug.rotation.z = 33.9 * Math.PI / 180;
     ug.position.y = 0;
 
     let eg = new THREE.Mesh(
@@ -72,6 +78,7 @@ export class CosComponent implements OnInit, AfterViewInit {
       })
     );
     eg.rotation.x = -Math.PI / 2;
+    eg.rotation.z = 33.9 * Math.PI / 180;
     eg.position.y = 300;
 
     let og = new THREE.Mesh(
@@ -82,29 +89,71 @@ export class CosComponent implements OnInit, AfterViewInit {
       })
     );
     og.rotation.x = -Math.PI / 2;
+    og.rotation.z = 33.9 * Math.PI / 180;
     og.position.y = 600;
+
+    let roof = new THREE.Mesh(
+      new THREE.PlaneGeometry(7804, 3712),
+      new THREE.MeshBasicMaterial({
+        map: new THREE.TextureLoader().load("assets/img/dach.jpg"),
+        side: THREE.DoubleSide
+      })
+    );
+    roof.rotation.x = -Math.PI / 2;
+    roof.rotation.z = 33.9 * Math.PI / 180;
+    roof.position.y = 900;
 
     this.layers.push(ug);
     this.layers.push(eg);
     this.layers.push(og);
+    this.layers.push(roof);
+  }
+
+  addMap() {
+    let texture = new THREE.TextureLoader().load('https://maps.googleapis.com/maps/api/staticmap?center=52.455994,13.297120&zoom=19&size=512x512&maptype=satellite&key=AIzaSyBpNirZm2qbLVg6wuhclvojHkkOabKOSTI');
+    let geometry = new THREE.PlaneGeometry(9287, 9287);
+    let material = new THREE.MeshBasicMaterial({
+      map: texture,
+      //side: THREE.DoubleSide
+    })
+    let map = new THREE.Mesh(geometry, material);
+    map.rotation.x = -Math.PI / 2;
+    map.position.y = -30
+    this.scene.add(map);
+  }
+  addWall() {
+    var stone = new THREE.MeshBasicMaterial({ color: 0xc8c8c8, side: THREE.DoubleSide });
+    var open = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, wireframe: true, side: THREE.DoubleSide });
+    var geometry = new THREE.BoxBufferGeometry(7804, 1, 3712);
+
+    var materials = [stone, stone, open, stone, stone, stone]
+    //[rechts,links,oben,unten,vorne,hinten]
+
+    this.wall = new THREE.Mesh(geometry, materials);
+    this.wall.position.y = 300;
+    this.wall.rotation.y = 33.9 * Math.PI / 180;
+    this.scene.add(this.wall);
   }
 
   updateLayer(z) {
-    if (this.layers[this.highestLayer].position.y <= z) {
-      while (this.layers.length > this.highestLayer && this.layers[this.highestLayer].position.y <= z) {
-        console.log(this.layers[this.highestLayer].position.y + "<=" + z)
-        this.scene.add(this.layers[this.highestLayer]);
-        this.highestLayer++;
+    if (this.highestLayer > 0 && this.layers[this.highestLayer].position.y > z) {
+      while (this.highestLayer > 0 && this.layers[this.highestLayer].position.y > z) {
+        this.scene.remove(this.layers[this.highestLayer--]);
       }
-      this.highestLayer--;
     }
     else {
-      while (this.highestLayer >= 0 && this.layers[this.highestLayer].position.y > z) {
-        console.log(this.layers[this.highestLayer].position.y + ">" + z)
-        this.scene.remove(this.layers[this.highestLayer]);
-        this.highestLayer--;
+      while (this.layers.length> this.highestLayer + 1 && this.layers[this.highestLayer + 1].position.y <= z) {
+        this.scene.add(this.layers[++this.highestLayer]);
       }
-      this.highestLayer++;
+    }
+    console.log(this.highestLayer)
+    if(this.highestLayer+1<this.layers.length){
+      this.wall.scale.y=this.layers[this.highestLayer].position.y+300;
+      this.wall.position.y=(this.layers[this.highestLayer].position.y+300)/2-1;
+    }
+    else{
+      this.wall.scale.y=this.layers[this.highestLayer].position.y;
+      this.wall.position.y=this.layers[this.highestLayer].position.y/2-1;
     }
   }
 
@@ -137,22 +186,22 @@ export class CosComponent implements OnInit, AfterViewInit {
         this.camera.position.y -= 10;
         break;
       case 65:
-          this.setTagPosition(-30, 0, 0, true);
+        this.setTagPosition(-30, 0, 0, true);
         break;
       case 68:
-          this.setTagPosition(30, 0, 0, true);
+        this.setTagPosition(30, 0, 0, true);
         break;
       case 87:
-          this.setTagPosition(0, 0, -30, true);
+        this.setTagPosition(0, 0, -30, true);
         break;
       case 83:
-          this.setTagPosition(0, 0, 30, true);
+        this.setTagPosition(0, 0, 30, true);
         break;
       case 67:
-          this.setTagPosition(0, -30, 0, true);
+        this.setTagPosition(0, -30, 0, true);
         break;
       case 88:
-          this.setTagPosition(0, 30, 0, true);
+        this.setTagPosition(0, 30, 0, true);
         break;
     }
   }
