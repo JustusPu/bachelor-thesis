@@ -30,11 +30,22 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.addTag();
     this.addWall();
     this.setTagPosition(0, 1000, 0);
+    window.addEventListener('resize', ()=>{
+      let width=this.canvas.nativeElement.offsetWidth;
+      let height = this.canvas.nativeElement.offsetHeight;
+      // this.canvas.nativeElement.width=width;
+      // this.canvas.nativeElement.height=height;
+      //this.renderer.setSize(width, height, false);
+      this.camera.aspect = width / height;
+      this.camera.updateProjectionMatrix();
+    }, false);
   }
   ngAfterViewInit() {
-    this.canvas.nativeElement.width=this.canvas.nativeElement.scrollWidth;
-    this.canvas.nativeElement.height=this.canvas.nativeElement.scrollHeight;
-    this.camera = new THREE.PerspectiveCamera(90, this.canvas.nativeElement.width / this.canvas.nativeElement.height, 10, 100000);
+    let width=this.canvas.nativeElement.offsetWidth;
+    let height = this.canvas.nativeElement.offsetHeight;
+    this.canvas.nativeElement.width=1517//screen.width;//=window.innerWidth;
+    this.canvas.nativeElement.height=694//screen.height;//window.innerHeight;
+    this.camera = new THREE.PerspectiveCamera(90, width / height, 10, 100000);
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas.nativeElement });
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     // this.camera.position.set(2500, 4000, 4000);
@@ -42,6 +53,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.controls.panSpeed = 30;
     this.controls.maxDistance = 10000;
     this.controls.minDistance = 200;
+    //this.camera.lookAt(this.tag.position);
     this.animate();
   }
 
@@ -183,10 +195,10 @@ export class CosComponent implements OnInit, AfterViewInit {
   onKey(event: any) { // without type info
     switch (event.keyCode) {
       case 33:
-        this.camera.position.y += 10;
+        this.camera.position.y += 30;
         break;
       case 34:
-        this.camera.position.y -= 10;
+        this.camera.position.y -= 30;
         break;
       case 65:
         this.setTagPosition(-30, 0, 0, true);
