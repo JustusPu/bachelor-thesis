@@ -1,1 +1,31 @@
-<app-cos width="400" height="200"></app-cos>
+<div class="ui-g grey header center">
+  <div class="ui-g-1"> 
+    <button title="Toogle" class="title toggle-button" (click)="sidebarVisable=true">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div> 
+  <div class="ui-g-1"> </div>
+  <div class="ui-g-8">
+    <p class="title">Setup</p>
+  </div>
+  <div class="ui-g-2"></div>
+</div>
+<div class="ui-g content">
+  <div class="ui-g-2"></div>
+  <div class="ui-g-8 center">
+    <app-cos width="100%" height="100%"></app-cos>
+  </div>
+  <div class="ui-g-2"></div>
+</div>
+<div class="ui-g footer">
+  <div class="ui-g-2"></div>
+  <div class="ui-g-8"></div>
+  <div class="ui-g-2">
+    <button title="Next" class="title next-button" (click)="nextStep">Weiter</button>
+  </div>
+</div>
+
+<p-sidebar [(visible)]="sidebarVisable" [baseZIndex]="10000">
+  <p-button icon="fas fa-times" (click)="sidebarVisable=false"></p-button>
+  Entwickelt von Justus Purat
+</p-sidebar>

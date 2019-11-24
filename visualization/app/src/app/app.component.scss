@@ -1,0 +1,53 @@
+.grey{
+    background-color: #808080;
+}
+.center{
+   text-align: center;
+}
+.header{
+    height:10vmin;
+    margin:0vmin;
+    padding:0vmin;
+    div{
+        padding:0;
+    }
+}
+.content{
+    margin:2vmin;
+    height:76vmin;
+}
+.footer{
+    height:10vmin;
+    margin:0vmin;
+    padding:0vmin;
+    div{
+        padding:0;
+    }
+}
+.title{
+    color:#ffffff;
+    font-size: 6vmin;
+    font-family: monospace;
+    font-style: normal;
+    font-weight: 400;
+    margin: 2vmin;
+}
+.toggle-button {
+    background-color: transparent;
+    background-image: none;
+    border: 0px solid #463d3d;
+    border-radius: 4px;
+  }
+.next-button{
+    background-color: #808080;
+    background-image: none;
+    border: 2px solid #463d3d;
+    border-radius: 4px;
+    
+    color:#ffffff;
+    font-size: 4vmin;
+    font-family: monospace;
+    font-style: normal;
+    font-weight: 400;
+    margin: 2vmin;
+  }

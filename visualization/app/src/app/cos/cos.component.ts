@@ -9,9 +9,9 @@ import * as THREE from 'three';
 })
 export class CosComponent implements OnInit, AfterViewInit {
   @ViewChild('cos', { static: false }) canvas: ElementRef;
-  @Input() width: number;
-  @Input() height: number;
-  highestLayer = -1;
+  @Input() width;
+  @Input() height;
+    highestLayer = -1;
   layers: THREE.Mesh[] = [];
   wall: THREE.Mesh;
   tag: THREE.Mesh;
@@ -29,13 +29,16 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.addMap();
     this.addTag();
     this.addWall();
-    this.setTagPosition(0, 700, 0);
+    this.setTagPosition(0, 1000, 0);
   }
   ngAfterViewInit() {
-    this.camera = new THREE.PerspectiveCamera(90, this.width / this.height, 10, 100000);
+    this.canvas.nativeElement.width=this.canvas.nativeElement.scrollWidth;
+    this.canvas.nativeElement.height=this.canvas.nativeElement.scrollHeight;
+    this.camera = new THREE.PerspectiveCamera(90, this.canvas.nativeElement.width / this.canvas.nativeElement.height, 10, 100000);
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas.nativeElement });
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.camera.position.set(-2000, 3000, 4000);
+    // this.camera.position.set(2500, 4000, 4000);
+    this.camera.position.set(2750, 6000, 4200);
     this.controls.panSpeed = 30;
     this.controls.maxDistance = 10000;
     this.controls.minDistance = 200;
