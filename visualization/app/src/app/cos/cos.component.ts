@@ -25,31 +25,29 @@ export class CosComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.scene = new THREE.Scene();
     this.addLayers();
-    this.addGrid();
+    //this.addGrid();
     this.addMap();
     this.addTag();
     this.addWall();
-    this.setTagPosition(0, 1000, 0);
+    this.setTagPosition(0, 500, 0);
     window.addEventListener('resize', ()=>{
-      let width=this.canvas.nativeElement.offsetWidth;
-      let height = this.canvas.nativeElement.offsetHeight;
-      // this.canvas.nativeElement.width=width;
-      // this.canvas.nativeElement.height=height;
-      //this.renderer.setSize(width, height, false);
+      let width=this.canvas.nativeElement.clientWidth;
+      let height = this.canvas.nativeElement.clientHeight;
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();
     }, false);
   }
   ngAfterViewInit() {
-    let width=this.canvas.nativeElement.offsetWidth;
-    let height = this.canvas.nativeElement.offsetHeight;
-    this.canvas.nativeElement.width=1517//screen.width;//=window.innerWidth;
-    this.canvas.nativeElement.height=694//screen.height;//window.innerHeight;
+    this.canvas.nativeElement.width=screen.width;
+    this.canvas.nativeElement.height=screen.height;
+    let width=this.canvas.nativeElement.clientWidth;
+    let height = this.canvas.nativeElement.clientHeight;
     this.camera = new THREE.PerspectiveCamera(90, width / height, 10, 100000);
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas.nativeElement });
+    this.renderer.localClippingEnabled=true;
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    // this.camera.position.set(2500, 4000, 4000);
-    this.camera.position.set(2750, 6000, 4200);
+    this.camera.position.set(2500, 4000, 4000);
+    //this.camera.position.set(2750, 6000, 4200);
     this.controls.panSpeed = 30;
     this.controls.maxDistance = 10000;
     this.controls.minDistance = 200;
@@ -65,11 +63,11 @@ export class CosComponent implements OnInit, AfterViewInit {
 
   addGrid() {
     let gridXY = new THREE.GridHelper(10000, 100);
-    gridXY.position.set(0, -20, 0);
+    gridXY.position.set(0, 1, 0);
     //gridXY.rotation.x = Math.PI/2;
     this.scene.add(gridXY);
     let axes = new THREE.AxesHelper(500);
-    axes.position.set(-5000, -20, -5000);
+    axes.position.set(-5000, 1, -5000);
     this.scene.add(axes);
   }
 
@@ -83,7 +81,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     );
     ug.rotation.x = -Math.PI / 2;
     ug.rotation.z = 33.9 * Math.PI / 180;
-    ug.position.y = 0;
+    ug.position.y = -300;
 
     let eg = new THREE.Mesh(
       new THREE.PlaneGeometry(7804, 3712),
@@ -94,7 +92,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     );
     eg.rotation.x = -Math.PI / 2;
     eg.rotation.z = 33.9 * Math.PI / 180;
-    eg.position.y = 300;
+    eg.position.y = 0;
 
     let og = new THREE.Mesh(
       new THREE.PlaneGeometry(7804, 3712),
@@ -105,7 +103,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     );
     og.rotation.x = -Math.PI / 2;
     og.rotation.z = 33.9 * Math.PI / 180;
-    og.position.y = 600;
+    og.position.y = 300;
 
     let roof = new THREE.Mesh(
       new THREE.PlaneGeometry(7804, 3712),
@@ -116,7 +114,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     );
     roof.rotation.x = -Math.PI / 2;
     roof.rotation.z = 33.9 * Math.PI / 180;
-    roof.position.y = 900;
+    roof.position.y = 600;
 
     this.layers.push(ug);
     this.layers.push(eg);
@@ -126,14 +124,24 @@ export class CosComponent implements OnInit, AfterViewInit {
 
   addMap() {
     let texture = new THREE.TextureLoader().load('https://maps.googleapis.com/maps/api/staticmap?center=52.455994,13.297120&zoom=19&size=512x512&maptype=satellite&key=AIzaSyBpNirZm2qbLVg6wuhclvojHkkOabKOSTI');
-    let geometry = new THREE.PlaneGeometry(9287, 9287);
+    // let texture = new THREE.TextureLoader().load('assets/img/Taku9.png');
+    let geometry = new THREE.PlaneGeometry(9287, 9287);//ScaleFaktor bei 512x512 {...,19:9287,...}
+    let angle =33.9*Math.PI/180
+    let localPlanes = [
+      new THREE.Plane( new THREE.Vector3( Math.sin(angle), 0, Math.cos(angle) ), -3712/2 ),
+      new THREE.Plane( new THREE.Vector3( -Math.sin(angle), 0, -Math.cos(angle)), -3712/2 ),
+      new THREE.Plane( new THREE.Vector3( Math.sin(angle+Math.PI/2), 0, Math.cos(angle+Math.PI/2) ), -7804/2 ),
+      new THREE.Plane( new THREE.Vector3( -Math.sin(angle+Math.PI/2), 0, -Math.cos(angle+Math.PI/2) ), -7804/2 )
+  ];
     let material = new THREE.MeshBasicMaterial({
       map: texture,
-      //side: THREE.DoubleSide
+      //side: THREE.DoubleSide,
+      transparent: true,
+      clippingPlanes: localPlanes,
+      clipIntersection: true
     })
     let map = new THREE.Mesh(geometry, material);
     map.rotation.x = -Math.PI / 2;
-    map.position.y = -30
     this.scene.add(map);
   }
   addWall() {
@@ -145,7 +153,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     //[rechts,links,oben,unten,vorne,hinten]
 
     this.wall = new THREE.Mesh(geometry, materials);
-    this.wall.position.y = 300;
+    this.wall.position.y = 0;
     this.wall.rotation.y = 33.9 * Math.PI / 180;
     this.scene.add(this.wall);
   }
@@ -161,15 +169,13 @@ export class CosComponent implements OnInit, AfterViewInit {
         this.scene.add(this.layers[++this.highestLayer]);
       }
     }
-    console.log(this.highestLayer)
     if(this.highestLayer+1<this.layers.length){
-      this.wall.scale.y=this.layers[this.highestLayer].position.y+300;
-      this.wall.position.y=(this.layers[this.highestLayer].position.y+300)/2-1;
+      this.wall.scale.y=this.layers[this.highestLayer+1].position.y-this.layers[0].position.y;
     }
     else{
-      this.wall.scale.y=this.layers[this.highestLayer].position.y;
-      this.wall.position.y=this.layers[this.highestLayer].position.y/2-1;
+      this.wall.scale.y=this.layers[this.highestLayer].position.y-this.layers[0].position.y;
     }
+    this.wall.position.y=this.wall.scale.y/2+this.layers[0].position.y-1;
   }
 
   addTag() {
