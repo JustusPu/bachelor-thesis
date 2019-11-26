@@ -2,6 +2,8 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientModule  } from "@angular/common/http";
+import { FormsModule } from '@angular/forms';
 //Eigene Module
 import { AppRoutingModule } from './app-routing.module';
 //Eigene Componenten
@@ -10,7 +12,8 @@ import { CosComponent } from './cos/cos.component';
 //PrimeNG
 import { SidebarModule } from 'primeng/sidebar';
 import { ButtonModule } from 'primeng/button';
-
+import { TooltipModule } from 'primeng/tooltip';
+import {FileUploadModule} from 'primeng/fileupload';
 @NgModule({
   declarations: [
     AppComponent,
@@ -20,9 +23,13 @@ import { ButtonModule } from 'primeng/button';
     AppRoutingModule,
     BrowserModule,
     BrowserAnimationsModule,
+    HttpClientModule,
+    FormsModule,
     //PrimeNG
     SidebarModule,
-    ButtonModule
+    ButtonModule,
+    TooltipModule,
+    FileUploadModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -4,15 +4,111 @@
       <i class="fas fa-bars"></i>
     </button>
     <span class="title">Setup</span>
-    <button title="Load" class="next-button" (click)="loadSetup()">Laden</button>
+    <button title="Load" class="next-button" *ngIf="step==1" (click)="fileDialog.click()">Laden</button>
+    <button title="Load" class="next-button" *ngIf="step==2" (click)="saveSetup()">Speichern</button>
+    <input type="file" #fileDialog style="display:none;" (change)="loadSetup($event.target.files)">
   </div>
-  <div class="content">
-      <div style="height:100%;width:50%">
-          <app-cos width="100%" height="100%"></app-cos>
+  <!-- <div id="turn" class="content">
+    Please rotate your device!
+  </div> -->
+  <div id="container" class="content">
+    <div [style.display]="step==1?'unset':'none'" class="step ui-g">
+      <div class="ui-lg-6 ui-g-12 frame">
+        <p class="headline">Umgebung:</p>
+        <div class="ui-g ui-fluid">
+          <div class="ui-g-4 ui-xl-2">
+            <div class="ui-inputgroup gradUnit">
+              <span class="ui-inputgroup-addon fa-stack">
+                <i class="fa fa-globe fa-stack-1x"></i>
+                <i class="fa fa-arrows-alt-v fa-stack-1x fa-inverse"></i>
+              </span>
+              <input type="text" pInputText placeholder="±52.450302" [(ngModel)]="setupCOS.latVal" maxlength="10"
+                size="8" pTooltip="Latitude des Mittelpunktes des Gebäudes" tooltipPosition="top">
+            </div>
+          </div>
+          <div class="ui-g-4 ui-xl-2">
+            <div class="ui-inputgroup gradUnit">
+              <span class="ui-inputgroup-addon fa-stack">
+                <i class="fa fa-globe fa-stack-1x"></i>
+                <i class="fa fa-arrows-alt-h fa-stack-1x fa-inverse"></i>
+              </span>
+              <input type="text" pInputText placeholder="±013.293496" [(ngModel)]="setupCOS.lonVal" maxlength="11"
+                size="8" pTooltip="Longitude des Mittelpunktes des Gebäudes" tooltipPosition="top">
+            </div>
+          </div>
+          <div class="ui-g-4 ui-xl-1">
+            <div class="ui-inputgroup timesUnit">
+              <span class="ui-inputgroup-addon fa-stack">
+                <i class="fas fa-search-location fa-stack-1x"></i>
+              </span>
+              <input type="text" pInputText placeholder="19" [(ngModel)]="setupCOS.zoomVal" maxlength="2" size="3"
+                pTooltip="Zoomfaktor um den Mittelpunktes des Gebäudes" tooltipPosition="top">
+            </div>
+          </div>
+          <div class="ui-g-4 ui-xl-1">
+            <div class="ui-inputgroup meterUnit">
+              <span class="ui-inputgroup-addon fa-stack">
+                <i class="fas fa-ruler-vertical fa-stack-1x"></i>
+              </span>
+              <input type="text" pInputText placeholder="78.04" [(ngModel)]="setupCOS.widthVal" maxlength="8" size="8"
+                pTooltip="Breite des Gebäudes" tooltipPosition="top">
+            </div>
+          </div>
+          <div class="ui-g-4 ui-xl-1">
+            <div class="ui-inputgroup meterUnit">
+              <span class="ui-inputgroup-addon fa-stack">
+                <i class="fas fa-ruler-horizontal fa-stack-1x"></i>
+              </span>
+              <input type="text" pInputText placeholder="37.12" [(ngModel)]="setupCOS.lengthVal" maxlength="8" size="8"
+                pTooltip="Länge des Gebäudes" tooltipPosition="top">
+            </div>
+          </div>
+          <div class="ui-g-4 ui-xl-1">
+            <div class="ui-inputgroup gradUnit">
+              <span class="ui-inputgroup-addon fa-stack">
+                <i class="fas fa-compass fa-stack-1x"></i>
+              </span>
+              <input type="text" pInputText placeholder="33.90" [(ngModel)]="setupCOS.rotationVal" maxlength="5"
+                size="3" pTooltip="Rotation des Gebäudes zum Äquator" tooltipPosition="top">
+            </div>
+          </div>
+        </div>
+        <p class="headline">Grundrisse:</p>
+        <p-fileUpload #fileUploader name="upload[]" url="http://bitcoins.bplaced.net/bachelor-thesis/upload.php"
+          multiple="multiple" accept="image/*" maxFileSize="1000000" (onUpload)="onUpload($event)"
+          (onError)="onError($event)" (onBeforeUpload)="onBeforeUpload($event)">
+          <ng-template let-file let-i="index" pTemplate="file">
+            <div class="ui-fileupload-row">
+              <div><img [src]="file.objectURL" *ngIf="fileUploader.isImage(file)" [width]="fileUploader.previewWidth" />
+              </div>
+              <div>{{file.name}}</div>
+              <div>
+                <input type="text" pInputText placeholder="0.00" [(ngModel)]="heights[i]" maxlength="5" size="3"
+                  pTooltip="Höhe des Grundrisses über dem Erdboden" tooltipPosition="right">m
+              </div>
+              <div>
+                <button type="button" icon="fas fa-times" pButton (click)="fileUploader.remove($event,i)"
+                  [disabled]="fileUploader.uploading"></button>
+              </div>
+            </div>
+          </ng-template>
+        </p-fileUpload>
       </div>
+      <div class="ui-lg-6 ui-g-12 frame">
+        <app-cos #setupCOS canvasWidth="100%" canvasHeight="100%"></app-cos>
+      </div>
+    </div>
+    <div [style.display]="step==2?'unset':'none'" class="step">
+      <div class="frame">
+        <p class="headline">Anker:</p>
+      </div>
+    </div>
   </div>
   <div class="footer">
-    <button title="Next" class="next-button" (click)="nextStep()">Weiter</button>
+    <button title="Next" class="next-button" [style.visibility]="step==2?'visible':'hidden'"
+      (click)="prevStep()">Zurück</button>
+    <button title="Next" class="next-button" [style.visibility]="step==1?'visible':'hidden'"
+      (click)="nextStep()">Weiter</button>
   </div>
 </div>
 
@@ -20,6 +116,6 @@
   <p-button icon="fas fa-times" (click)="sidebarVisable=false"></p-button>
   <span class="time">{{time|date:'dd.MM.yyyy HH:mm:ss'}}</span>
   <h2>UWB-RTK-Lokalisation</h2><br>
-  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
   Entwickelt von Justus Purat
 </p-sidebar>
