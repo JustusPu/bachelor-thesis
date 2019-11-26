@@ -19,15 +19,15 @@ export class CosComponent implements OnInit, AfterViewInit {
   width: number = 7804;
   length: number = 3712;
   outlines =
-    // [];
+    [];
     // [{ url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/untergeschoss.jpg', height: -3 },
     // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/erdgeschoss.jpg', height: 0 },
     // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/obergeschoss.jpg', height: 3 },
     // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/dach.jpg', height: 6 }];
-    [{ url: 'assets/img/untergeschoss.jpg', height: -3 },
-    { url: 'assets/img/erdgeschoss.jpg', height: 0 },
-    { url: 'assets/img/obergeschoss.jpg', height: 3 },
-    { url: 'assets/img/dach.jpg', height: 6 }];
+    // [{ url: 'assets/img/untergeschoss.jpg', height: -3 },
+    // { url: 'assets/img/erdgeschoss.jpg', height: 0 },
+    // { url: 'assets/img/obergeschoss.jpg', height: 3 },
+    // { url: 'assets/img/dach.jpg', height: 6 }];
 
   pixelResolution = 512
   mapwidth = Math.floor(15654303.392 * ((Math.cos(this.lat * Math.PI / 180)) / Math.pow(2, this.zoom)) * this.pixelResolution);
@@ -327,24 +327,24 @@ export class CosComponent implements OnInit, AfterViewInit {
   }
   set lengthVal(val) {
     this.length = Math.floor(val * 100);
+    this.updateMap();
     this.updateWall();
-    this.refreshLayer();
   }
   get lengthVal() {
     return this.length / 100;
   }
   set widthVal(val) {
     this.width = Math.floor(val * 100);
+    this.updateMap();
     this.updateWall();
-    this.refreshLayer();
   }
   get widthVal() {
     return this.width / 100;
   }
   set rotationVal(val) {
     this.rotation = val;
+    this.updateMap();
     this.updateWall();
-    this.refreshLayer();
   }
   get rotationVal() {
     return this.rotation;

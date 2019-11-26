@@ -1,18 +1,6 @@
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CosComponent } from './cos/cos.component';
-import { SelectItem } from 'primeng/api';
-class knoten {
-  name: string;
-  lat:number;
-  lon:number;
-  alt:number;
-  constructor(name) {
-    this.name = name;
-  }
-  hasNeighbour(node){
-    return false;
-  }
-}
+import { knoten } from './api/knoten';
 
 @Component({
   selector: 'app-root',
@@ -29,7 +17,7 @@ export class AppComponent implements OnInit {
   @ViewChild('setupCOS', { static: false }) setupCOS: CosComponent;
   heights: number[] = [];
   //Setup 2
-  anchors: knoten[] = [new knoten("1"), new knoten("2"),new knoten("3"), new knoten("4"),new knoten("5")];
+  anchors: knoten[] = [new knoten("1",null), new knoten("2",null),new knoten("3",null), new knoten("4",null),new knoten("5",null)];
   selectedAnchor: knoten = this.anchors[0];
   selectedNeighbour: knoten = this.anchors[1];
 
@@ -49,29 +37,7 @@ export class AppComponent implements OnInit {
     this.step++;
   }
 
-
-  onUpload(event) {
-    event.originalEvent.body.okFiles.forEach(element => {
-      this.addLayer(element.url, element.height);
-    });
-  }
-  onError(event) {
-    console.log(event)
-  }
-  onBeforeUpload(event) {
-    event.formData.append("heights", this.heights.join(","));
-  }
-  addLayer(newURL, newHeight) {
-    let newHeightVal = parseFloat(newHeight);
-    this.setupCOS.outlines.push({ 'url': newURL, 'height': newHeightVal });
-    this.setupCOS.addLayer(newURL, newHeightVal);
-  }
-  updateLayer(index, height) {
-    this.setupCOS.updateLayer(index, parseFloat(height));
-  }
-  removeLayer(index) {
-    this.setupCOS.removeLayer(index);
-  }
+  //Setup
   loadSetup(target) {
     let file = target.files[0];
     let fileReader: FileReader = new FileReader();
@@ -81,10 +47,10 @@ export class AppComponent implements OnInit {
       if (content.lat) { self.setupCOS.lat = content.lat; }
       if (content.lon) { self.setupCOS.lon = content.lon; }
       if (content.zoom) { self.setupCOS.zoom = content.zoom; }
-      self.setupCOS.updateMap();
       if (content.width) { self.setupCOS.width = content.width; }
       if (content.length) { self.setupCOS.length = content.length; }
       if (content.rotation) { self.setupCOS.rotation = content.rotation; }
+      self.setupCOS.updateMap();
       self.setupCOS.updateWall();
       if (content.outlines) {
         self.setupCOS.clearLayers();
@@ -107,5 +73,40 @@ export class AppComponent implements OnInit {
     }
   }
 
+  //Setup 1
+  onUpload(event) {
+    event.originalEvent.body.okFiles.forEach(element => {
+      this.addLayer(element.url, element.height);
+    });
+  }
+  onError(event) {
+    console.log(event)
+  }
+  onBeforeUpload(event) {
+    event.formData.append("heights", this.heights.join(","));
+  }
+  addLayer(newURL, newHeight) {
+    let newHeightVal = parseFloat(newHeight);
+    this.setupCOS.outlines.push({ 'url': newURL, 'height': newHeightVal });
+    this.setupCOS.addLayer(newURL, newHeightVal);
+  }
+  updateLayer(index, height) {
+    this.setupCOS.updateLayer(index, parseFloat(height));
+  }
+  removeLayer(index) {
+    this.setupCOS.removeLayer(index);
+  }
 
+  //Setup2
+  addAnchor(){
+    this.anchors = [...this.anchors, new knoten(this.anchors.length+1,null)];
+  }
+  removeAnchor(){
+    let index=this.anchors.indexOf(this.selectedAnchor);
+    this.anchors = this.anchors.filter(elem=>{return elem!=this.selectedAnchor});
+    if(this.selectedNeighbour==this.selectedAnchor){
+      this.selectedNeighbour=this.anchors[index]||this.anchors[index-1]||null;
+    }
+    this.selectedAnchor=this.anchors[index]||this.anchors[index-1]||null;
+  }
 }

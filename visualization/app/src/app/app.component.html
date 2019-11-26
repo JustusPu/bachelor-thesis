@@ -76,7 +76,8 @@
         <p class="headline">Grundrisse:</p>
         <p-fileUpload #fileUploader name="upload[]" url="http://bitcoins.bplaced.net/bachelor-thesis/upload.php"
           multiple="multiple" accept="image/*" maxFileSize="1000000" (onUpload)="onUpload($event)"
-          (onError)="onError($event)" (onBeforeUpload)="onBeforeUpload($event)" chooseLabel="Bilder auswählen" uploadLabel="Grundrisse einfügen" cancelLabel="Auswahl entfernen">
+          (onError)="onError($event)" (onBeforeUpload)="onBeforeUpload($event)" chooseLabel="Bilder auswählen"
+          uploadLabel="Grundrisse einfügen" cancelLabel="Auswahl entfernen">
           <ng-template let-file let-i="index" pTemplate="file">
             <div class="ui-fileupload-row">
               <div>
@@ -121,7 +122,8 @@
                   tooltipPosition="right">m
               </div>
               <div>
-                <button type="button" icon="fas fa-plus" pButton (click)="addLayer(newURL.value,newHeight.value);newHeight.value = '';newURL.value = '';"></button>
+                <button type="button" icon="fas fa-plus" pButton
+                  (click)="addLayer(newURL.value,newHeight.value);newHeight.value = '';newURL.value = '';"></button>
               </div>
             </div>
           </ng-template>
@@ -136,21 +138,21 @@
         <p class="headline">Anker:</p>
         <p-fieldset legend="Generieren" [style]="{width:'100%'}">
           <div>
-            <input type="text" pInputText placeholder="" [(ngModel)]="selectedAnchor.lat" maxlength="3" size="1"
+            <input type="text" pInputText placeholder="30" maxlength="3" size="1"
               pTooltip="Anzahl der zu generieren Anker" tooltipPosition="top" #totalCount> Anker davon für<br>
-            <input type="text" pInputText placeholder="" [(ngModel)]="selectedAnchor.lat" maxlength="3" size="1"
+            <input type="text" pInputText placeholder="4" maxlength="3" size="1"
               pTooltip="Anzahl der 'RTK'-Anler" tooltipPosition="top" #fixedCount> Anker die Position beibehalten
           </div>
           <div>
             UWB-Reichweite: <br>
-            <input type="text" pInputText placeholder="0" [(ngModel)]="selectedAnchor.lat" maxlength="3" size="1"
+            <input type="text" pInputText placeholder="15" maxlength="5" size="1"
               #rangeUWB>m ±
-            <input type="text" pInputText placeholder="0" [(ngModel)]="selectedAnchor.lat" maxlength="3" size="1"
+            <input type="text" pInputText placeholder="2" maxlength="5" size="1"
               #rangeToleranceUWB>m
           </div>
           <div>
             UWB-Genauigkeit:<br>
-            <input type="text" pInputText placeholder="0" [(ngModel)]="selectedAnchor.lat" maxlength="3" size="1"
+            <input type="text" pInputText placeholder="0.1" maxlength="5" size="1"
               #accuracyUWB>m
           </div>
           <div>
@@ -165,30 +167,30 @@
                 <span class="ui-inputgroup-addon fa-stack">
                   <i class="fas fa-tag fa-stack-1x"></i>
                 </span>
-                <input type="text" pInputText placeholder="OG 105" [(ngModel)]="selectedAnchor.name" maxlength="10"
+                <input type="text" pInputText placeholder="OG 105" *ngIf="selectedAnchor" [(ngModel)]="selectedAnchor.name" maxlength="10"
                   size="8" pTooltip="Bezeichnung des Ankers" tooltipPosition="top">
-              </div><br>
-              <div class="ui-inputgroup gradUnit">
+              </div>
+              <div class="ui-inputgroup" [class.gradUnit]="selectedAnchor">
                 <span class="ui-inputgroup-addon fa-stack">
                   <i class="fa fa-globe fa-stack-1x"></i>
                   <i class="fa fa-arrows-alt-v fa-stack-1x fa-inverse"></i>
                 </span>
-                <input type="text" pInputText placeholder="±52.450302" [(ngModel)]="selectedAnchor.lat" maxlength="10"
+                <input type="text" pInputText placeholder="±52.450302" *ngIf="selectedAnchor" [(ngModel)]="selectedAnchor.lat" maxlength="10"
                   size="8" pTooltip="Optional: Latitude des Ankers" tooltipPosition="top">
               </div>
-              <div class="ui-inputgroup gradUnit">
+              <div class="ui-inputgroup" [class.gradUnit]="selectedAnchor">
                 <span class="ui-inputgroup-addon fa-stack">
                   <i class="fa fa-globe fa-stack-1x"></i>
                   <i class="fa fa-arrows-alt-h fa-stack-1x fa-inverse"></i>
                 </span>
-                <input type="text" pInputText placeholder="±013.293496" [(ngModel)]="selectedAnchor.lon" maxlength="10"
+                <input type="text" pInputText placeholder="±013.293496" *ngIf="selectedAnchor" [(ngModel)]="selectedAnchor.lon" maxlength="10"
                   size="8" pTooltip="Optional: Longitude des Ankers" tooltipPosition="top">
               </div>
-              <div class="ui-inputgroup meterUnit">
+              <div class="ui-inputgroup" [class.meterUnit]="selectedAnchor">
                 <span class="ui-inputgroup-addon fa-stack">
                   <i class="fas fa-arrow-up fa-stack-1x"></i>
                 </span>
-                <input type="text" pInputText placeholder="19.392" [(ngModel)]="selectedAnchor.alt" maxlength="10"
+                <input type="text" pInputText placeholder="19.392" *ngIf="selectedAnchor" [(ngModel)]="selectedAnchor.alt" maxlength="10"
                   size="8" pTooltip="Optional: Höhe des Ankers über NN" tooltipPosition="top">
               </div>
             </div>
@@ -202,6 +204,14 @@
                 </div>
               </ng-template>
             </p-listbox>
+            <div style="display:flex;align-items: flex-end;">
+              <button type="button" class="add-button" (click)="addAnchor()">
+                <span class="fas fa-plus"></span>
+              </button>
+              <button type="button" class="add-button" (click)="removeAnchor()">
+                <span class="fas fa-minus"></span>
+              </button>
+            </div>
           </p-fieldset>
           <p-fieldset legend="Nachbarn">
             <p-listbox [options]="anchors" [(ngModel)]="selectedNeighbour" optionLabel="name">
@@ -214,12 +224,12 @@
                 </div>
               </ng-template>
             </p-listbox>
-            <div>
-              <div class="ui-inputgroup meterUnit">
+            <div style="padding-left: 10px;">
+              <div class="ui-inputgroup" [class.meterUnit]="selectedAnchor && selectedNeighbour && selectedAnchor != selectedNeighbour">
                 <span class="ui-inputgroup-addon fa-stack">
                   <i class="fas fa-ruler-horizontal fa-stack-1x"></i>
                 </span>
-                <input type="text" pInputText placeholder="10.32" [(ngModel)]="selectedAnchor.dist" maxlength="6"
+                <input type="text" pInputText placeholder="10.32" *ngIf="selectedAnchor && selectedNeighbour && selectedAnchor != selectedNeighbour" [(ngModel)]="selectedAnchor.dist" maxlength="6"
                   size="8" pTooltip="Optional: Entfernung zwischen Anker und Nachbar" tooltipPosition="top">
               </div>
             </div>
@@ -233,13 +243,12 @@
       (click)="prevStep()">Zurück</button>
     <button title="Next" class="next-button" [style.display]="step==1?'unset':'none'"
       (click)="nextStep()">Weiter</button>
-      <button title="Next" class="next-button" [style.display]="step==2?'unset':'none'"
-        (click)="nextStep()">Berechnung starten</button>
+    <button title="Next" class="next-button" [style.display]="step==2?'unset':'none'" (click)="nextStep()">Berechnung
+      starten</button>
   </div>
 </div>
 <p-sidebar [(visible)]="sidebarVisable" [baseZIndex]="10000" [style]="{margin:'1vh',height:'98vh',padding:'2vmin'}">
-  <p-button icon="fas fa-times" (click)="sidebarVisable=false"></p-button>
-  <span class="time">{{time|date:'dd.MM.yyyy HH:mm:ss'}}</span>
+  <p class="time">{{time|date:'dd.MM.yyyy HH:mm:ss'}}</p><br>
   <h2>UWB-RTK-Lokalisation</h2><br>
   <!-- <a routerLink="/path">test</a> -->
   <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
