@@ -12,7 +12,7 @@ if ($_FILES['upload']) {
 			$fileType = pathinfo($targetFilePath,PATHINFO_EXTENSION);
             if(in_array($fileType, $allowTypes)){
                 if(move_uploaded_file($_FILES["upload"]["tmp_name"][$key], $targetFilePath)){
-					$okFiles.='{"url":"http://bitcoins.bplaced.net/bachelor-thesis/'.$targetFilePath.'","height":'.intval(floatval($heights[$key])*100).'},';
+					$okFiles.='{"url":"http://bitcoins.bplaced.net/bachelor-thesis/'.$targetFilePath.'","height":'.floatval($heights[$key]).'},';
 				}
 				else{
 					$errorFiles.='{"name":'.$fileName.',"reason":'.$_FILES["upload"]["error"][$key].'},';

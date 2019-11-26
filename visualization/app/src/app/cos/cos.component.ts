@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import * as THREE from 'three';
+import { isNumber } from 'util';
 
 @Component({
   selector: 'app-cos',
@@ -18,10 +19,10 @@ export class CosComponent implements OnInit, AfterViewInit {
   width: number = 7804;
   length: number = 3712;
   outlines = //[];
-    [{ url: "http://bitcoins.bplaced.net/bachelor-thesis/uploads/1574714328untergeschoss.jpg", height: -300 },
-    { url: "http://bitcoins.bplaced.net/bachelor-thesis/uploads/1574714328erdgeschoss.jpg", height: 0 },
-    { url: "http://bitcoins.bplaced.net/bachelor-thesis/uploads/1574714328obergeschoss.jpg", height: 300 },
-    { url: "http://bitcoins.bplaced.net/bachelor-thesis/uploads/1574714328dach.jpg", height: 600 }];
+    [{ url: "http://bitcoins.bplaced.net/bachelor-thesis/uploads/1574714328untergeschoss.jpg", height: -3.00 },
+    { url: "http://bitcoins.bplaced.net/bachelor-thesis/uploads/1574714328erdgeschoss.jpg", height: 0.00 },
+    { url: "http://bitcoins.bplaced.net/bachelor-thesis/uploads/1574714328obergeschoss.jpg", height: 3.00 },
+    { url: "http://bitcoins.bplaced.net/bachelor-thesis/uploads/1574714328dach.jpg", height: 6.00 }];
   // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/untergeschoss.jpg', height: -300 },
   // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/erdgeschoss.jpg', height: 0 },
   // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/obergeschoss.jpg', height: 300 },
@@ -37,8 +38,11 @@ export class CosComponent implements OnInit, AfterViewInit {
 
   highestLayer = -1;
   layers: THREE.Mesh[] = [];
+  sortedLayers: THREE.Mesh[] = [];
   nodes: THREE.Mesh[] = [];
-  wall: THREE.Mesh; map: THREE.Mesh;
+  map: THREE.Mesh;
+  wall: THREE.Mesh;
+  tag: THREE.Mesh;
 
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
@@ -53,14 +57,8 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.addMap();
     this.addWall();
     this.addLayers();
-    this.addNode();
-    this.setNodePosition(0, 0, 500, 0);
-  }
-  resizeCanvas() {
-    let width = this.canvas.nativeElement.clientWidth;
-    let height = this.canvas.nativeElement.clientHeight;
-    this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
+    this.addTag();
+    this.moveTag(0, 500, 0);
   }
   ngAfterViewInit() {
     this.canvas.nativeElement.width = screen.width;//this.canvasWidth;//
@@ -79,12 +77,17 @@ export class CosComponent implements OnInit, AfterViewInit {
     // THREE.ImageUtils.crossOrigin = '';
     this.animate();
   }
-
   animate() {
     requestAnimationFrame(this.animate.bind(this));
     this.resizeCanvas();
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
+  }
+  resizeCanvas() {
+    let width = this.canvas.nativeElement.clientWidth;
+    let height = this.canvas.nativeElement.clientHeight;
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
   }
 
   addGrid() {
@@ -122,15 +125,15 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.camera.far = this.mapwidth * 10;
     this.controls.maxDistance = this.mapwidth;
     this.camera.position.set(0, this.mapwidth / 2, 0);
-    this.scene.remove(this.map)
+    this.scene.remove(this.map);
     this.addMap();
-    //console.log("Updated");
   }
   addWall() {
-    let stone = new THREE.MeshBasicMaterial({ color: 0xc8c8c8, side: THREE.DoubleSide });
+    let wall = new THREE.MeshBasicMaterial({ color: 0xc8c8c8, side: THREE.DoubleSide });
+    let ground = new THREE.MeshBasicMaterial({ color: 0x808080, side: THREE.DoubleSide });
     let open = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, wireframe: true, side: THREE.DoubleSide });
     let geometry = new THREE.BoxBufferGeometry(this.length, 1, this.width);
-    let materials = [stone, stone, open, stone, stone, stone]
+    let materials = [wall, wall, open, ground, wall, wall];//rechts,links,oben, unten, hinten,vorne
     this.wall = new THREE.Mesh(geometry, materials);
     this.wall.rotation.y = (this.rotation) * Math.PI / 180 + (Math.PI / 2);
     this.scene.add(this.wall);
@@ -140,42 +143,105 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.addWall();
   }
   addLayers() {
+    this.layers.forEach(elem => {
+      this.scene.remove(elem);
+    })
+    this.layers = [];
+    this.sortedLayers = [];
     this.outlines.forEach((elem) => {
-      let layer = new THREE.Mesh(
-        new THREE.PlaneGeometry(7804, 3712),
-        new THREE.MeshBasicMaterial({
-          // map: THREE.ImageUtils.loadTexture(elem.url),
-          map: new THREE.TextureLoader().load(elem.url),
-          //side: THREE.DoubleSide,
-          transparent: true
-        })
-      );
-      layer.rotation.x = -Math.PI / 2;
-      layer.rotation.z = this.rotation * Math.PI / 180;
-      layer.position.y = elem.height;
-      this.layers.push(layer)
+      this.addLayer(elem.url, elem.height);
     });
   }
-  updateLayer(z) {
-    if (this.layers.length > 0) {
-
-      if (this.highestLayer > 0 && this.layers[this.highestLayer].position.y > z) {
-        while (this.highestLayer > 0 && this.layers[this.highestLayer].position.y > z) {
-          this.scene.remove(this.layers[this.highestLayer--]);
+  clearLayers(){
+    while(this.layers.length>0){
+      this.removeLayer(0);
+    };
+  }
+  addLayer(url, height) {
+    let layer = new THREE.Mesh(
+      new THREE.PlaneGeometry(7804, 3712),
+      new THREE.MeshBasicMaterial({
+        // map: THREE.ImageUtils.loadTexture(elem.url),
+        map: new THREE.TextureLoader().load(url),
+        //side: THREE.DoubleSide,
+        transparent: true
+      })
+    );
+    layer.rotation.x = -Math.PI / 2;
+    layer.rotation.z = this.rotation * Math.PI / 180;
+    layer.position.y = Math.floor(height * 100);
+    this.layers.push(layer);
+    if (!this.tag || this.tag && this.layers[this.layers.length - 1].position.y <= this.tag.position.y) {
+      this.scene.add(this.layers[this.layers.length - 1]);
+    }
+    if (this.sortedLayers.length == 0 || layer.position.y >= this.sortedLayers[this.sortedLayers.length - 1].position.y) {
+      this.sortedLayers.push(layer);
+      this.highestLayer = this.sortedLayers.length - 1;
+    }
+    else {
+      for (let i = 0; i < this.sortedLayers.length; i++) {
+        if (layer.position.y < this.sortedLayers[this.sortedLayers.length - 1].position.y) {
+          this.sortedLayers.splice(i, 0, layer);
+          break;
         }
       }
-      else {
-        while (this.layers.length > this.highestLayer + 1 && this.layers[this.highestLayer + 1].position.y <= z) {
-          this.scene.add(this.layers[++this.highestLayer]);
+    }
+    this.refreshLayer();
+  }
+  updateLayer(outlineIndex, height) {
+    if (!isNaN(height)) {
+      this.layers[outlineIndex].position.y = Math.floor(height * 100);
+      this.sortedLayers.sort((a, b) => a.position.y - b.position.y);
+      if (this.tag && this.sortedLayers[this.highestLayer].position.y > this.tag.position.y) {//updatedLayer war vorher unter Tag und nun über Tag
+        this.scene.remove(this.layers[outlineIndex]);
+        this.highestLayer--;
+      }
+      else if (this.tag && this.highestLayer + 1 < this.sortedLayers.length && this.sortedLayers[this.highestLayer + 1].position.y <= this.tag.position.y) {//updatedLayer war über Tag und jetzt zwischen highestLayer und tag geschoben
+        this.highestLayer++;
+        this.scene.add(this.layers[outlineIndex]);
+      }
+      this.refreshLayer();
+    }
+  }
+  removeLayer(outlineIndex) {
+    this.scene.remove(this.layers[outlineIndex])
+    let index = this.sortedLayers.indexOf(this.layers[outlineIndex]);
+    if (this.highestLayer>=0&&this.layers[outlineIndex].position.y <= this.sortedLayers[this.highestLayer].position.y) { this.highestLayer--; }
+    this.sortedLayers.splice(index, 1);
+    this.layers.splice(outlineIndex, 1);
+    this.outlines.splice(outlineIndex, 1);
+    this.refreshLayer();
+  }
+  refreshLayer() {
+    if (this.sortedLayers.length > 0) {
+      if (this.tag){
+        if (this.highestLayer >= 0 && this.sortedLayers[this.highestLayer].position.y > this.tag.position.y) {
+          while (this.highestLayer >= 0 && this.sortedLayers[this.highestLayer].position.y > this.tag.position.y) {
+            this.scene.remove(this.sortedLayers[this.highestLayer--]);
+          }
+        }
+        else {
+          while (this.sortedLayers.length > this.highestLayer + 1 && this.sortedLayers[this.highestLayer + 1].position.y <= this.tag.position.y) {
+            this.scene.add(this.sortedLayers[++this.highestLayer]);
+          }
         }
       }
-      if (this.highestLayer + 1 < this.layers.length) {
-        this.wall.scale.y = this.layers[this.highestLayer + 1].position.y - this.layers[0].position.y;
+      if(this.sortedLayers.length==1){//Nur eine Ebene: Geht bis Map
+        this.wall.scale.y = Math.abs(this.sortedLayers[0].position.y);
+        this.wall.position.y = this.wall.scale.y / 2 - 1;
       }
-      else {
-        this.wall.scale.y = this.layers[this.highestLayer].position.y - this.layers[0].position.y;
+      else if (this.highestLayer + 1 < this.sortedLayers.length) {
+        this.wall.scale.y = this.sortedLayers[this.highestLayer + 1].position.y - this.sortedLayers[0].position.y;
+        this.wall.position.y = this.wall.scale.y / 2 + this.sortedLayers[0].position.y - 1;
       }
-      this.wall.position.y = this.wall.scale.y / 2 + this.layers[0].position.y - 1;
+      else{//Oberste Ebene anzeigen: Dach hat keine Außenmauern
+        this.wall.scale.y = this.sortedLayers[this.highestLayer].position.y - this.sortedLayers[0].position.y;
+        this.wall.position.y = this.wall.scale.y / 2 + this.sortedLayers[0].position.y - 1;
+      }
+    }
+    else{
+      this.wall.scale.y = 1;
+      this.wall.position.y = 0;
     }
   }
 
@@ -183,22 +249,23 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.nodes.push(new THREE.Mesh(new THREE.SphereGeometry(30, 32, 32), new THREE.MeshBasicMaterial({ color: 0xff0000 })));
     this.scene.add(this.nodes[this.nodes.length - 1]);
   }
-
-  setNodePosition(i, x, y, z, relativ?) {
-    if (relativ) {
-      this.nodes[i].position.x += x;
-      this.nodes[i].position.y += y;
-      this.nodes[i].position.z += z;
-    }
-    else {
-      this.nodes[i].position.x = x;
-      this.nodes[i].position.y = y;
-      this.nodes[i].position.z = z;
-
-    }
-    this.updateLayer(this.nodes[i].position.y);
+  setNodePosition(i, x, y, z) {
+    this.nodes[i].position.x = x;
+    this.nodes[i].position.y = y;
+    this.nodes[i].position.z = z;
   }
-
+  addTag() {
+    this.tag = new THREE.Mesh(new THREE.SphereGeometry(30, 32, 32), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+    this.scene.add(this.tag);
+    this.refreshLayer();
+  }
+  moveTag(x, y, z) {
+    this.tag.position.x += x;
+    this.tag.position.y += y;
+    this.tag.position.z += z;
+    this.refreshLayer();
+    console.log(this.tag.position.x, this.tag.position.y, this.tag.position.z)
+  }
   onKey(event: any) { // without type info
     switch (event.keyCode) {
       case 33:
@@ -208,22 +275,22 @@ export class CosComponent implements OnInit, AfterViewInit {
         this.camera.position.y -= 30;
         break;
       case 65:
-        this.setNodePosition(0, -30, 0, 0, true);
+        this.moveTag(-30, 0, 0);
         break;
       case 68:
-        this.setNodePosition(0, 30, 0, 0, true);
+        this.moveTag(30, 0, 0);
         break;
       case 87:
-        this.setNodePosition(0, 0, 0, -30, true);
+        this.moveTag(0, 0, -30);
         break;
       case 83:
-        this.setNodePosition(0, 0, 0, 30, true);
+        this.moveTag(0, 0, 30);
         break;
-      case 67:
-        this.setNodePosition(0, 0, -30, 0, true);
+      case 89:
+        this.moveTag(0, -30, 0);
         break;
       case 88:
-        this.setNodePosition(0, 0, 30, 0, true);
+        this.moveTag(0, 30, 0);
         break;
     }
   }
@@ -251,7 +318,7 @@ export class CosComponent implements OnInit, AfterViewInit {
   set lengthVal(val) {
     this.length = Math.floor(val * 100);
     this.updateWall();
-    this.updateLayer(this.nodes[0].position.y);
+    this.refreshLayer();
   }
   get lengthVal() {
     return this.length / 100;
@@ -259,7 +326,7 @@ export class CosComponent implements OnInit, AfterViewInit {
   set widthVal(val) {
     this.width = Math.floor(val * 100);
     this.updateWall();
-    this.updateLayer(this.nodes[0].position.y);
+    this.refreshLayer();
   }
   get widthVal() {
     return this.width / 100;
@@ -267,7 +334,7 @@ export class CosComponent implements OnInit, AfterViewInit {
   set rotationVal(val) {
     this.rotation = val;
     this.updateWall();
-    this.updateLayer(this.nodes[0].position.y);
+    this.refreshLayer();
   }
   get rotationVal() {
     return this.rotation;

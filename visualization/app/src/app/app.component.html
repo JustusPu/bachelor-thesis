@@ -79,16 +79,47 @@
           (onError)="onError($event)" (onBeforeUpload)="onBeforeUpload($event)">
           <ng-template let-file let-i="index" pTemplate="file">
             <div class="ui-fileupload-row">
-              <div><img [src]="file.objectURL" *ngIf="fileUploader.isImage(file)" [width]="fileUploader.previewWidth" />
+              <div>
+                <img [src]="file.objectURL" *ngIf="fileUploader.isImage(file)" [width]="fileUploader.previewWidth" />
               </div>
               <div>{{file.name}}</div>
               <div>
-                <input type="text" pInputText placeholder="0.00" [(ngModel)]="heights[i]" maxlength="5" size="3"
+                <input type="text" pInputText placeholder="0.00" [(ngModel)]="height[i]" maxlength="5" size="3"
                   pTooltip="Höhe des Grundrisses über dem Erdboden" tooltipPosition="right">m
               </div>
               <div>
                 <button type="button" icon="fas fa-times" pButton (click)="fileUploader.remove($event,i)"
                   [disabled]="fileUploader.uploading"></button>
+              </div>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="content">
+            <div class="ui-fileupload-row" *ngFor="let outline of this.setupCOS.outlines;let i = index">
+              <div>
+                <!-- <span>{{outline.url|slice:0:25}}...{{outline.url|slice:-25}}</span> -->
+                <input type="text" pInputText placeholder="http://example.de/img/outline.img" [(ngModel)]="outline.url"
+                  size="50" pTooltip="URL zum Grundriss" tooltipPosition="top" disabled>
+              </div>
+              <div>
+                <input type="text" pInputText placeholder="0.00" maxlength="5" size="3" [(ngModel)]="outline.height"
+                  (ngModelChange)="updateLayer(i,$event)" pTooltip="Höhe des Grundrisses über dem Erdboden"
+                  tooltipPosition="top">m
+              </div>
+              <div>
+                <button type="button" icon="fas fa-times" pButton (click)="removeLayer(i)"></button>
+              </div>
+            </div>
+            <div class="ui-fileupload-row">
+              <div>
+                <input type="text" pInputText placeholder="http://example.de/img/outline.img" #newURL size="50"
+                  pTooltip="URL zum Grundriss" tooltipPosition="top">
+              </div>
+              <div>
+                <input type="text" pInputText placeholder="0.00" #newHeight maxlength="5" size="3"
+                  pTooltip="Höhe des Grundrisses über dem Erdboden" tooltipPosition="right">m
+              </div>
+              <div>
+                <button type="button" icon="fas fa-plus" pButton (click)="addLayer(newURL,newHeight)"></button>
               </div>
             </div>
           </ng-template>

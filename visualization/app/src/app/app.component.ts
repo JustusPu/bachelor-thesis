@@ -1,8 +1,5 @@
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
 import { CosComponent } from './cos/cos.component';
-import { browser } from 'protractor';
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -21,7 +18,7 @@ export class AppComponent implements OnInit {
   }
 
   onUpload(event) {
-    if (event.originalEvent.body.okFiles) {
+    /*if (event.originalEvent.body.okFiles) {
       this.setupCOS.layers.forEach(element => {
         this.setupCOS.scene.remove(element);
       });
@@ -29,7 +26,10 @@ export class AppComponent implements OnInit {
       this.setupCOS.outlines = event.originalEvent.body.okFiles.sort((a, b) => parseFloat(a.height) - parseFloat(b.height));
       this.setupCOS.addLayers();
       this.setupCOS.updateLayer(this.setupCOS.nodes[0].position.y);
-    }
+    }*/
+    event.originalEvent.body.okFiles.forEach(element => {
+      this.addLayer(element.url, element.height);
+    });
   }
   onError(event) {
     console.log(event)
@@ -67,10 +67,9 @@ export class AppComponent implements OnInit {
       if (content.rotation) { self.setupCOS.rotation = content.rotation; }
       self.setupCOS.updateWall();
       if (content.outlines) {
-        self.setupCOS.layers = [];
-        self.setupCOS.outlines = content.outlines.sort((a, b) => parseFloat(a.height) - parseFloat(b.height));
+        self.setupCOS.clearLayers();
+        self.setupCOS.outlines = content.outlines;
         self.setupCOS.addLayers();
-        self.setupCOS.updateLayer(self.setupCOS.nodes[0].position.y);
       }
     }
     fileReader.readAsText(file);
@@ -87,8 +86,17 @@ export class AppComponent implements OnInit {
       a.click();
     }
   }
-
-  // get time() {
-  //   return Date.now();
-  // }
+  addLayer(newURL, newHeight) {
+    let newHeightVal = parseFloat(newHeight.value);
+    this.setupCOS.outlines.push({ 'url': newURL.value, 'height': newHeightVal });
+    this.setupCOS.addLayer(newURL.value, newHeightVal);
+    newHeight.value = "";
+    newURL.value = "";
+  }
+  updateLayer(index, height) {
+    this.setupCOS.updateLayer(index, parseFloat(height));
+  }
+  removeLayer(index) {
+    this.setupCOS.removeLayer(index);
+  }
 }
