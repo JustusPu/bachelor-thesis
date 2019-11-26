@@ -18,20 +18,16 @@ export class CosComponent implements OnInit, AfterViewInit {
   rotation: number = 34;
   width: number = 7804;
   length: number = 3712;
-  outlines = //[];
-    [{ url: "http://bitcoins.bplaced.net/bachelor-thesis/uploads/1574714328untergeschoss.jpg", height: -3.00 },
-    { url: "http://bitcoins.bplaced.net/bachelor-thesis/uploads/1574714328erdgeschoss.jpg", height: 0.00 },
-    { url: "http://bitcoins.bplaced.net/bachelor-thesis/uploads/1574714328obergeschoss.jpg", height: 3.00 },
-    { url: "http://bitcoins.bplaced.net/bachelor-thesis/uploads/1574714328dach.jpg", height: 6.00 }];
-  // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/untergeschoss.jpg', height: -300 },
-  // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/erdgeschoss.jpg', height: 0 },
-  // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/obergeschoss.jpg', height: 300 },
-  // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/dach.jpg', height: 600 }];
-  // outlines = [
-  //   { url: 'assets/img/untergeschoss.jpg', height: -300 },
-  //   { url: 'assets/img/erdgeschoss.jpg', height: 0 },
-  //   { url: 'assets/img/obergeschoss.jpg', height: 300 },
-  //   { url: 'assets/img/dach.jpg', height: 600 }];
+  outlines =
+    // [];
+    // [{ url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/untergeschoss.jpg', height: -3 },
+    // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/erdgeschoss.jpg', height: 0 },
+    // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/obergeschoss.jpg', height: 3 },
+    // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/dach.jpg', height: 6 }];
+    [{ url: 'assets/img/untergeschoss.jpg', height: -3 },
+    { url: 'assets/img/erdgeschoss.jpg', height: 0 },
+    { url: 'assets/img/obergeschoss.jpg', height: 3 },
+    { url: 'assets/img/dach.jpg', height: 6 }];
 
   pixelResolution = 512
   mapwidth = Math.floor(15654303.392 * ((Math.cos(this.lat * Math.PI / 180)) / Math.pow(2, this.zoom)) * this.pixelResolution);
@@ -152,8 +148,8 @@ export class CosComponent implements OnInit, AfterViewInit {
       this.addLayer(elem.url, elem.height);
     });
   }
-  clearLayers(){
-    while(this.layers.length>0){
+  clearLayers() {
+    while (this.layers.length > 0) {
       this.removeLayer(0);
     };
   }
@@ -180,13 +176,13 @@ export class CosComponent implements OnInit, AfterViewInit {
     }
     else {
       for (let i = 0; i < this.sortedLayers.length; i++) {
-        if (layer.position.y < this.sortedLayers[this.sortedLayers.length - 1].position.y) {
+        if (layer.position.y < this.sortedLayers[i].position.y) {
           this.sortedLayers.splice(i, 0, layer);
           break;
         }
       }
     }
-    this.refreshLayer();
+    this.refreshWall();
   }
   updateLayer(outlineIndex, height) {
     if (!isNaN(height)) {
@@ -200,48 +196,62 @@ export class CosComponent implements OnInit, AfterViewInit {
         this.highestLayer++;
         this.scene.add(this.layers[outlineIndex]);
       }
-      this.refreshLayer();
+      this.refreshWall();
     }
   }
   removeLayer(outlineIndex) {
     this.scene.remove(this.layers[outlineIndex])
     let index = this.sortedLayers.indexOf(this.layers[outlineIndex]);
-    if (this.highestLayer>=0&&this.layers[outlineIndex].position.y <= this.sortedLayers[this.highestLayer].position.y) { this.highestLayer--; }
+    if (this.highestLayer >= 0 && this.layers[outlineIndex].position.y <= this.sortedLayers[this.highestLayer].position.y) { this.highestLayer--; }
     this.sortedLayers.splice(index, 1);
     this.layers.splice(outlineIndex, 1);
     this.outlines.splice(outlineIndex, 1);
-    this.refreshLayer();
+    this.refreshWall();
   }
   refreshLayer() {
-    if (this.sortedLayers.length > 0) {
-      if (this.tag){
-        if (this.highestLayer >= 0 && this.sortedLayers[this.highestLayer].position.y > this.tag.position.y) {
-          while (this.highestLayer >= 0 && this.sortedLayers[this.highestLayer].position.y > this.tag.position.y) {
-            this.scene.remove(this.sortedLayers[this.highestLayer--]);
-          }
-        }
-        else {
-          while (this.sortedLayers.length > this.highestLayer + 1 && this.sortedLayers[this.highestLayer + 1].position.y <= this.tag.position.y) {
-            this.scene.add(this.sortedLayers[++this.highestLayer]);
-          }
+    if (this.sortedLayers.length > 0 && this.tag) {
+      let changed = false;
+      if (this.highestLayer >= 0 && this.sortedLayers[this.highestLayer].position.y > this.tag.position.y) {
+        while (this.highestLayer >= 0 && this.sortedLayers[this.highestLayer].position.y > this.tag.position.y) {
+          this.scene.remove(this.sortedLayers[this.highestLayer--]);
+          console.log(this.highestLayer);
+          changed = true;
         }
       }
-      if(this.sortedLayers.length==1){//Nur eine Ebene: Geht bis Map
-        this.wall.scale.y = Math.abs(this.sortedLayers[0].position.y);
-        this.wall.position.y = this.wall.scale.y / 2 - 1;
+      else {
+        while (this.sortedLayers.length > this.highestLayer + 1 && this.sortedLayers[this.highestLayer + 1].position.y <= this.tag.position.y) {
+          this.scene.add(this.sortedLayers[++this.highestLayer]);
+          console.log(this.highestLayer);
+          changed = true;
+        }
       }
-      else if (this.highestLayer + 1 < this.sortedLayers.length) {
-        this.wall.scale.y = this.sortedLayers[this.highestLayer + 1].position.y - this.sortedLayers[0].position.y;
-        this.wall.position.y = this.wall.scale.y / 2 + this.sortedLayers[0].position.y - 1;
-      }
-      else{//Oberste Ebene anzeigen: Dach hat keine Außenmauern
-        this.wall.scale.y = this.sortedLayers[this.highestLayer].position.y - this.sortedLayers[0].position.y;
-        this.wall.position.y = this.wall.scale.y / 2 + this.sortedLayers[0].position.y - 1;
+      if (changed && this.highestLayer >= 0) {
+        this.refreshWall();
       }
     }
-    else{
+  }
+  refreshWall() {
+    if (this.sortedLayers.length > 1) {
+      if (this.highestLayer + 1 < this.sortedLayers.length) {
+        this.wall.scale.y = this.sortedLayers[this.highestLayer + 1].position.y - this.sortedLayers[0].position.y;
+        this.wall.position.y = this.wall.scale.y / 2 + this.sortedLayers[0].position.y - 1;
+        console.log("A");
+      }
+      else if (this.highestLayer + 1 == this.sortedLayers.length) {//Oberste Ebene anzeigen: Dach hat keine Außenmauern
+        this.wall.scale.y = this.sortedLayers[this.highestLayer].position.y - this.sortedLayers[0].position.y;
+        this.wall.position.y = this.wall.scale.y / 2 + this.sortedLayers[0].position.y - 1;
+        console.log("B");
+      }
+    }
+    else if (this.sortedLayers.length > 0) {
+      this.wall.scale.y = Math.abs(this.sortedLayers[0].position.y);
+      this.wall.position.y = this.wall.scale.y / 2 - 1;
+      console.log("C");
+    }
+    else {
       this.wall.scale.y = 1;
       this.wall.position.y = 0;
+      console.log("D");
     }
   }
 
@@ -264,7 +274,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.tag.position.y += y;
     this.tag.position.z += z;
     this.refreshLayer();
-    console.log(this.tag.position.x, this.tag.position.y, this.tag.position.z)
+    // console.log(this.tag.position.x, this.tag.position.y, this.tag.position.z)
   }
   onKey(event: any) { // without type info
     switch (event.keyCode) {

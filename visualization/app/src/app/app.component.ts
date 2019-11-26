@@ -1,5 +1,19 @@
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CosComponent } from './cos/cos.component';
+import { SelectItem } from 'primeng/api';
+class knoten {
+  name: string;
+  lat:number;
+  lon:number;
+  alt:number;
+  constructor(name) {
+    this.name = name;
+  }
+  hasNeighbour(node){
+    return false;
+  }
+}
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -8,25 +22,35 @@ import { CosComponent } from './cos/cos.component';
 })
 export class AppComponent implements OnInit {
   sidebarVisable = false;
-  @ViewChild('setupCOS', { static: false }) setupCOS: CosComponent;
   time: number;
   step: number = 1;
+
+  //Setup 1
+  @ViewChild('setupCOS', { static: false }) setupCOS: CosComponent;
   heights: number[] = [];
+  //Setup 2
+  anchors: knoten[] = [new knoten("1"), new knoten("2"),new knoten("3"), new knoten("4"),new knoten("5")];
+  selectedAnchor: knoten = this.anchors[0];
+  selectedNeighbour: knoten = this.anchors[1];
 
   constructor() {
 
   }
+  ngOnInit() {
+    setInterval(() => {
+      this.time = Date.now();
+    }, 1000);
+  }
+
+  prevStep() {
+    this.step--;
+  }
+  nextStep() {
+    this.step++;
+  }
+
 
   onUpload(event) {
-    /*if (event.originalEvent.body.okFiles) {
-      this.setupCOS.layers.forEach(element => {
-        this.setupCOS.scene.remove(element);
-      });
-      this.setupCOS.layers = [];
-      this.setupCOS.outlines = event.originalEvent.body.okFiles.sort((a, b) => parseFloat(a.height) - parseFloat(b.height));
-      this.setupCOS.addLayers();
-      this.setupCOS.updateLayer(this.setupCOS.nodes[0].position.y);
-    }*/
     event.originalEvent.body.okFiles.forEach(element => {
       this.addLayer(element.url, element.height);
     });
@@ -37,23 +61,19 @@ export class AppComponent implements OnInit {
   onBeforeUpload(event) {
     event.formData.append("heights", this.heights.join(","));
   }
-
-  ngOnInit() {
-    setInterval(() => {
-      this.time = Date.now();
-    }, 1000);
+  addLayer(newURL, newHeight) {
+    let newHeightVal = parseFloat(newHeight);
+    this.setupCOS.outlines.push({ 'url': newURL, 'height': newHeightVal });
+    this.setupCOS.addLayer(newURL, newHeightVal);
   }
-
-  prevStep() {
-    this.step--;
+  updateLayer(index, height) {
+    this.setupCOS.updateLayer(index, parseFloat(height));
   }
-
-  nextStep() {
-    this.step++;
+  removeLayer(index) {
+    this.setupCOS.removeLayer(index);
   }
-
-  loadSetup(fileList: FileList) {
-    let file = fileList[0];
+  loadSetup(target) {
+    let file = target.files[0];
     let fileReader: FileReader = new FileReader();
     let self = this;
     fileReader.onloadend = function (x) {
@@ -73,8 +93,8 @@ export class AppComponent implements OnInit {
       }
     }
     fileReader.readAsText(file);
+    target.value="";
   }
-
   saveSetup() {
     let filename = prompt("Wie soll die Datei heißen?");
     if (filename) {
@@ -86,17 +106,6 @@ export class AppComponent implements OnInit {
       a.click();
     }
   }
-  addLayer(newURL, newHeight) {
-    let newHeightVal = parseFloat(newHeight.value);
-    this.setupCOS.outlines.push({ 'url': newURL.value, 'height': newHeightVal });
-    this.setupCOS.addLayer(newURL.value, newHeightVal);
-    newHeight.value = "";
-    newURL.value = "";
-  }
-  updateLayer(index, height) {
-    this.setupCOS.updateLayer(index, parseFloat(height));
-  }
-  removeLayer(index) {
-    this.setupCOS.removeLayer(index);
-  }
+
+
 }
