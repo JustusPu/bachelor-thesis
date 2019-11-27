@@ -5,7 +5,9 @@
     </button>
     <span class="title">Setup</span>
     <button title="Load" class="next-button" *ngIf="step==1" (click)="fileDialog.click()">Laden</button>
-    <button title="Load" class="next-button" *ngIf="step==2" (click)="saveSetup()">Speichern</button>
+    <button title="Save" class="next-button" *ngIf="step==2" (click)="saveSetup()">Speichern</button>
+    <button title="Platzhalter" class="next-button" *ngIf="step>2" style="visibility: hidden;"
+      (click)="saveSetup()">Speichern</button>
     <input type="file" #fileDialog style="display:none;" accept=".txt" (change)="loadSetup($event.target)">
   </div>
   <!-- <div id="turn" class="content">
@@ -138,26 +140,23 @@
         <p class="headline">Anker:</p>
         <p-fieldset legend="Generieren" [style]="{width:'100%'}">
           <div>
-            <input type="text" pInputText placeholder="30" maxlength="3" size="1"
+            <input type="text" pInputText placeholder="30" value="30" maxlength="3" size="1"
               pTooltip="Anzahl der zu generieren Anker" tooltipPosition="top" #totalCount> Anker davon für<br>
-            <input type="text" pInputText placeholder="4" maxlength="3" size="1"
-              pTooltip="Anzahl der 'RTK'-Anler" tooltipPosition="top" #fixedCount> Anker die Position beibehalten
+            <input type="text" pInputText placeholder="4" value="4" maxlength="3" size="1" pTooltip="Anzahl der 'RTK'-Anler"
+              tooltipPosition="top" #fixedCount> Anker die Position beibehalten
           </div>
           <div>
             UWB-Reichweite: <br>
-            <input type="text" pInputText placeholder="15" maxlength="5" size="1"
-              #rangeUWB>m ±
-            <input type="text" pInputText placeholder="2" maxlength="5" size="1"
-              #rangeToleranceUWB>m
+            <input type="text" pInputText placeholder="15" value="15" maxlength="5" size="1" #rangeUWB>m ±
+            <input type="text" pInputText placeholder="2"  value="2"maxlength="5" size="1" #rangeToleranceUWB>m
           </div>
           <div>
             UWB-Genauigkeit:<br>
-            <input type="text" pInputText placeholder="0.1" maxlength="5" size="1"
-              #accuracyUWB>m
+            <input type="text" pInputText placeholder="0.1" value="0.1" maxlength="5" size="1" #accuracyUWB>m
           </div>
           <div>
             <button type="button" class="add-button"
-              (click)="generateAnchors(totalCount.value,fixedCount.value,rangeUWB.value,rangeToleranceUWB.value,accuracyUWB.value)">Generieneren</button>
+              (click)="generateAnchors(totalCount,fixedCount,rangeUWB,rangeToleranceUWB,accuracyUWB)">Generieneren</button>
           </div>
         </p-fieldset>
         <div style="display:flex;justify-content: space-around;flex-wrap: wrap;">
@@ -167,37 +166,42 @@
                 <span class="ui-inputgroup-addon fa-stack">
                   <i class="fas fa-tag fa-stack-1x"></i>
                 </span>
-                <input type="text" pInputText placeholder="OG 105" *ngIf="selectedAnchor" [(ngModel)]="selectedAnchor.name" maxlength="10"
-                  size="8" pTooltip="Bezeichnung des Ankers" tooltipPosition="top">
+                <input type="text" pInputText placeholder="OG 105" *ngIf="selectedAnchor" #name
+                  [(ngModel)]="selectedAnchor.name" maxlength="10" size="8" pattern="^[a-zA-Z0-9\s]*$"
+                  (keyup)="nameRegex($event)" pTooltip="Bezeichnung des Ankers" tooltipPosition="top">
+                <!-- onkeydown="return /[a-zA-Z0-9\s]/i.test(event.key)" -->
               </div>
               <div class="ui-inputgroup" [class.gradUnit]="selectedAnchor">
                 <span class="ui-inputgroup-addon fa-stack">
                   <i class="fa fa-globe fa-stack-1x"></i>
                   <i class="fa fa-arrows-alt-v fa-stack-1x fa-inverse"></i>
                 </span>
-                <input type="text" pInputText placeholder="±52.450302" *ngIf="selectedAnchor" [(ngModel)]="selectedAnchor.lat" maxlength="10"
-                  size="8" pTooltip="Optional: Latitude des Ankers" tooltipPosition="top">
+                <input type="text" pInputText placeholder="±52.450302" *ngIf="selectedAnchor"
+                  [(ngModel)]="selectedAnchor.lla.lat" maxlength="10" size="8" pTooltip="Optional: Latitude des Ankers"
+                  tooltipPosition="top">
               </div>
               <div class="ui-inputgroup" [class.gradUnit]="selectedAnchor">
                 <span class="ui-inputgroup-addon fa-stack">
                   <i class="fa fa-globe fa-stack-1x"></i>
                   <i class="fa fa-arrows-alt-h fa-stack-1x fa-inverse"></i>
                 </span>
-                <input type="text" pInputText placeholder="±013.293496" *ngIf="selectedAnchor" [(ngModel)]="selectedAnchor.lon" maxlength="10"
-                  size="8" pTooltip="Optional: Longitude des Ankers" tooltipPosition="top">
+                <input type="text" pInputText placeholder="±013.293496" *ngIf="selectedAnchor"
+                  [(ngModel)]="selectedAnchor.lla.lon" maxlength="10" size="8" pTooltip="Optional: Longitude des Ankers"
+                  tooltipPosition="top">
               </div>
               <div class="ui-inputgroup" [class.meterUnit]="selectedAnchor">
                 <span class="ui-inputgroup-addon fa-stack">
                   <i class="fas fa-arrow-up fa-stack-1x"></i>
                 </span>
-                <input type="text" pInputText placeholder="19.392" *ngIf="selectedAnchor" [(ngModel)]="selectedAnchor.alt" maxlength="10"
-                  size="8" pTooltip="Optional: Höhe des Ankers über NN" tooltipPosition="top">
+                <input type="text" pInputText placeholder="19.392" *ngIf="selectedAnchor"
+                  [(ngModel)]="selectedAnchor.lla.alt" maxlength="10" size="8" pTooltip="Optional: Höhe des Ankers über NN"
+                  tooltipPosition="top">
               </div>
             </div>
             <p-listbox [options]="anchors" [(ngModel)]="selectedAnchor" optionLabel="name">
               <ng-template let-anchor let-i="index" pTemplate="item">
                 <div style="border-radius:5px;padding:0 0.857em;"
-                  [style.background]="anchors[i].lat&&anchors[i].lon&&anchors[i].alt?'green':'unset'">
+                  [style.background]="anchors[i].lla.lat&&anchors[i].lla.lon&&anchors[i].lla.alt?'green':'unset'">
                   <p style="height:4vmin;font-size: 2vmin;vertical-align: middle;display: table-cell;">
                     {{anchors[i].name}}
                   </p>
@@ -217,7 +221,7 @@
             <p-listbox [options]="anchors" [(ngModel)]="selectedNeighbour" optionLabel="name">
               <ng-template let-anchor let-i="index" pTemplate="item">
                 <div style="border-radius:5px;padding:0 0.857em;"
-                  [style.background]="anchors[i].hasNeighbour(selectedAnchor)?'green':'unset'">
+                  [style.background]="selectedAnchor&&anchors[i].neighbours[selectedAnchor.name]?'green':'unset'">
                   <p style="height:4vmin;font-size: 2vmin;vertical-align: middle;display: table-cell;">
                     {{anchors[i].name}}
                   </p>
@@ -225,12 +229,15 @@
               </ng-template>
             </p-listbox>
             <div style="padding-left: 10px;">
-              <div class="ui-inputgroup" [class.meterUnit]="selectedAnchor && selectedNeighbour && selectedAnchor != selectedNeighbour">
+              <div class="ui-inputgroup"
+                [class.meterUnit]="selectedAnchor && selectedNeighbour && selectedAnchor != selectedNeighbour">
                 <span class="ui-inputgroup-addon fa-stack">
                   <i class="fas fa-ruler-horizontal fa-stack-1x"></i>
                 </span>
-                <input type="text" pInputText placeholder="10.32" *ngIf="selectedAnchor && selectedNeighbour && selectedAnchor != selectedNeighbour" [(ngModel)]="selectedAnchor.dist" maxlength="6"
-                  size="8" pTooltip="Optional: Entfernung zwischen Anker und Nachbar" tooltipPosition="top">
+                <input type="text" pInputText placeholder="10.32"
+                  *ngIf="selectedAnchor && selectedNeighbour && selectedAnchor != selectedNeighbour"
+                  [(ngModel)]="selectedNeighbour.neighbours[selectedAnchor.name]" maxlength="6" size="8"
+                  pTooltip="Optional: Entfernung zwischen Anker und Nachbar" tooltipPosition="top">
               </div>
             </div>
           </p-fieldset>
