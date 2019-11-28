@@ -16,6 +16,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ListboxModule } from 'primeng/listbox';
 import { FieldsetModule } from 'primeng/fieldset';
+import { CheckboxModule } from 'primeng/checkbox';
 @NgModule({
   declarations: [
     AppComponent,
@@ -33,7 +34,8 @@ import { FieldsetModule } from 'primeng/fieldset';
     TooltipModule,
     FileUploadModule,
     ListboxModule,
-    FieldsetModule
+    FieldsetModule,
+    CheckboxModule
   ],
   providers: [],
   bootstrap: [AppComponent]

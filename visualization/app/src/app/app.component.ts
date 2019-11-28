@@ -14,6 +14,7 @@ export class AppComponent implements OnInit {
   time: number;
   step: number = 2;
   generatedAnchorsCount = 0;
+  filterNeighbours = true;
   //Setup 1
   @ViewChild('setupCOS', { static: false }) setupCOS: CosComponent;
   heights: number[] = [];
@@ -23,11 +24,6 @@ export class AppComponent implements OnInit {
   selectedAnchor: any;
   selectedNeighbour: any;
 
-  dezimal2sextant(lla) {
-    console.log("N" + (Math.floor(lla.lat) * 10000 + Math.floor(lla.lat * 100 % 100 * 0.6) * 100 + Math.floor((lla.lat * 100 % 100 * 0.6) * 100 % 100) * 0.6))
-    console.log("E0" + (Math.floor(lla.lon) * 10000 + Math.floor(lla.lon * 100 % 100 * 0.6) * 100 + Math.floor((lla.lon * 100 % 100 * 0.6) * 100 % 100) * 0.6))
-    console.log(lla.alt);
-  }
   generateAnchors(totalCount, fixedCount, rangeUWB, rangeToleranceUWB, accuracyUWB) {
     let totalCountVal = parseFloat(totalCount.value);
     let fixedCountVal = parseFloat(fixedCount.value);
@@ -35,10 +31,7 @@ export class AppComponent implements OnInit {
     let rangeToleranceUWBVal = parseFloat(rangeToleranceUWB.value);
     let accuracyUWBVal = parseFloat(accuracyUWB.value);
     if (this.setupCOS.lat && this.setupCOS.lon && this.setupCOS.sortedLayers.length > 0 && this.setupCOS.length && this.setupCOS.width && this.setupCOS.rotation && totalCountVal > 0 && fixedCountVal >= 0 && rangeUWBVal > 0 && rangeToleranceUWBVal >= 0 && accuracyUWBVal >= 0) {
-      // this.dezimal2sextant({ lat: this.setupCOS.lat, lon: this.setupCOS.lon, alt: 0 });
-      let buildingOrigin = functions.altlatlon2ecef({ lat: this.setupCOS.lat, lon: this.setupCOS.lon, alt: 0 });
-      console.log(buildingOrigin);
-      console.log({ lat: this.setupCOS.lat, lon: this.setupCOS.lon, alt: 57 })
+      let buildingOrigin = functions.altlatlon2ecef({ lat: this.setupCOS.lat, lon: this.setupCOS.lon, alt: 57 });
       //Für alle Anker die lat,lon,alt angebenen haben=>x,y,z bestimmen
       this.anchors.filter(elem => { elem.lla.lat && elem.lla.lon && elem.lla.alt }).forEach(elem => {
         elem.pos = functions.altlatlon2ecef(elem.lla);
@@ -47,7 +40,6 @@ export class AppComponent implements OnInit {
         elem.pos.z = (elem.pos.z - buildingOrigin.z)
       });
       //Array mit neuen Anker erstellen(random x, y, z )
-      // console.log(this.setupCOS.sortedLayers[0].position.y,this.setupCOS.sortedLayers[this.setupCOS.sortedLayers.length - 1].position.y)
       for (let i = 0; i < totalCountVal; i++) {
         let x = functions.getRandom(-this.setupCOS.width / 2, this.setupCOS.width / 2);
         let y = functions.getRandom(-this.setupCOS.length / 2, this.setupCOS.length / 2);
@@ -57,12 +49,9 @@ export class AppComponent implements OnInit {
           z: functions.getRandom(this.setupCOS.sortedLayers[0].position.y, this.setupCOS.sortedLayers[this.setupCOS.sortedLayers.length - 1].position.y) / 100
         };
         let lla = { lat: null, lon: null, alt: null };
-        //Für fixedCount Anker lat, lon,alt berechnen
         if (i < fixedCountVal) {
-          console.log(functions.test(buildingOrigin, pos))
           lla = functions.ecef2altlatlon(functions.test(buildingOrigin, pos))
           console.log(lla)
-          //this.dezimal2sextant(lla);
           console.log(pos.z)
         }
         this.anchors.push(
@@ -88,6 +77,7 @@ export class AppComponent implements OnInit {
         });
       });
       this.anchors = [...this.anchors];
+      console.log(Object.keys(this.anchors[0].neighbours).length)
     }
     else {
       console.log("totalCount: " + totalCountVal);
@@ -105,6 +95,18 @@ export class AppComponent implements OnInit {
   }
   nameRegex(event) {
     this.selectedAnchor.name = event.target.value.replace('#', '');
+  }
+  neighboursCount(anchor) {
+    return Object.keys(anchor.neighbours).length;
+  }
+  distChange(value) {
+    let dist = parseFloat(value);
+    if (dist) {
+      this.selectedAnchor.neighbours[this.selectedNeighbour.name] = dist;
+    }
+    else {
+      delete this.selectedAnchor.neighbours[this.selectedNeighbour.name];
+    }
   }
   constructor() {
 
@@ -142,6 +144,9 @@ export class AppComponent implements OnInit {
         self.setupCOS.outlines = content.outlines;
         self.setupCOS.addLayers();
       }
+      if (content.anchors) {
+        self.anchors = [...content.anchors];
+      }
     }
     fileReader.readAsText(file);
     target.value = "";
@@ -149,7 +154,7 @@ export class AppComponent implements OnInit {
   saveSetup() {
     let filename = prompt("Wie soll die Datei heißen?");
     if (filename) {
-      let content = { lat: this.setupCOS.lat, lon: this.setupCOS.lon, zoom: this.setupCOS.zoom, width: this.setupCOS.width, length: this.setupCOS.length, rotation: this.setupCOS.rotation, outlines: this.setupCOS.outlines }
+      let content = { lat: this.setupCOS.lat, lon: this.setupCOS.lon, zoom: this.setupCOS.zoom, width: this.setupCOS.width, length: this.setupCOS.length, rotation: this.setupCOS.rotation, outlines: this.setupCOS.outlines, anchors: this.anchors }
       var a = document.createElement("a");
       var file = new Blob([JSON.stringify(content)], { type: 'text/plain' });
       a.href = URL.createObjectURL(file);

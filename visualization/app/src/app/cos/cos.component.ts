@@ -214,14 +214,12 @@ export class CosComponent implements OnInit, AfterViewInit {
       if (this.highestLayer >= 0 && this.sortedLayers[this.highestLayer].position.y > this.tag.position.y) {
         while (this.highestLayer >= 0 && this.sortedLayers[this.highestLayer].position.y > this.tag.position.y) {
           this.scene.remove(this.sortedLayers[this.highestLayer--]);
-          console.log(this.highestLayer);
           changed = true;
         }
       }
       else {
         while (this.sortedLayers.length > this.highestLayer + 1 && this.sortedLayers[this.highestLayer + 1].position.y <= this.tag.position.y) {
           this.scene.add(this.sortedLayers[++this.highestLayer]);
-          console.log(this.highestLayer);
           changed = true;
         }
       }
@@ -235,23 +233,23 @@ export class CosComponent implements OnInit, AfterViewInit {
       if (this.highestLayer + 1 < this.sortedLayers.length) {
         this.wall.scale.y = this.sortedLayers[this.highestLayer + 1].position.y - this.sortedLayers[0].position.y;
         this.wall.position.y = this.wall.scale.y / 2 + this.sortedLayers[0].position.y - 1;
-        console.log("A");
+        // console.log("A");
       }
       else if (this.highestLayer + 1 == this.sortedLayers.length) {//Oberste Ebene anzeigen: Dach hat keine Außenmauern
         this.wall.scale.y = this.sortedLayers[this.highestLayer].position.y - this.sortedLayers[0].position.y;
         this.wall.position.y = this.wall.scale.y / 2 + this.sortedLayers[0].position.y - 1;
-        console.log("B");
+        // console.log("B");
       }
     }
     else if (this.sortedLayers.length > 0) {
       this.wall.scale.y = Math.abs(this.sortedLayers[0].position.y);
       this.wall.position.y = this.wall.scale.y / 2 - 1;
-      console.log("C");
+      // console.log("C");
     }
     else {
       this.wall.scale.y = 1;
       this.wall.position.y = 0;
-      console.log("D");
+      // console.log("D");
     }
   }
 
