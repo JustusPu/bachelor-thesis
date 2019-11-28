@@ -1,8 +1,9 @@
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CosComponent } from './cos/cos.component';
 import { knoten } from './api/knoten';
+import { wolke } from './api/cloud'
 import { functions } from './api/functions'
-
+import { element } from 'protractor';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -20,95 +21,12 @@ export class AppComponent implements OnInit {
   heights: number[] = [];
   //Setup 2
   anchors: any[] = [];
-
   selectedAnchor: any;
   selectedNeighbour: any;
+  //Algorithmus
+  cloud: wolke;
 
-  generateAnchors(totalCount, fixedCount, rangeUWB, rangeToleranceUWB, accuracyUWB) {
-    let totalCountVal = parseFloat(totalCount.value);
-    let fixedCountVal = parseFloat(fixedCount.value);
-    let rangeUWBVal = parseFloat(rangeUWB.value);
-    let rangeToleranceUWBVal = parseFloat(rangeToleranceUWB.value);
-    let accuracyUWBVal = parseFloat(accuracyUWB.value);
-    if (this.setupCOS.lat && this.setupCOS.lon && this.setupCOS.sortedLayers.length > 0 && this.setupCOS.length && this.setupCOS.width && this.setupCOS.rotation && totalCountVal > 0 && fixedCountVal >= 0 && rangeUWBVal > 0 && rangeToleranceUWBVal >= 0 && accuracyUWBVal >= 0) {
-      let buildingOrigin = functions.altlatlon2ecef({ lat: this.setupCOS.lat, lon: this.setupCOS.lon, alt: 57 });
-      //Für alle Anker die lat,lon,alt angebenen haben=>x,y,z bestimmen
-      this.anchors.filter(elem => { elem.lla.lat && elem.lla.lon && elem.lla.alt }).forEach(elem => {
-        elem.pos = functions.altlatlon2ecef(elem.lla);
-        elem.pos.x = (elem.pos.x - buildingOrigin.x)
-        elem.pos.y = (elem.pos.y - buildingOrigin.y)
-        elem.pos.z = (elem.pos.z - buildingOrigin.z)
-      });
-      //Array mit neuen Anker erstellen(random x, y, z )
-      for (let i = 0; i < totalCountVal; i++) {
-        let x = functions.getRandom(-this.setupCOS.width / 2, this.setupCOS.width / 2);
-        let y = functions.getRandom(-this.setupCOS.length / 2, this.setupCOS.length / 2);
-        let pos = {
-          x: (Math.cos(this.setupCOS.rotation) * x - Math.sin(this.setupCOS.rotation) * y) / 100,
-          y: (Math.sin(this.setupCOS.rotation) * x + Math.cos(this.setupCOS.rotation) * y) / 100,
-          z: functions.getRandom(this.setupCOS.sortedLayers[0].position.y, this.setupCOS.sortedLayers[this.setupCOS.sortedLayers.length - 1].position.y) / 100
-        };
-        let lla = { lat: null, lon: null, alt: null };
-        if (i < fixedCountVal) {
-          lla = functions.ecef2altlatlon(functions.test(buildingOrigin, pos))
-          console.log(lla)
-          console.log(pos.z)
-        }
-        this.anchors.push(
-          {
-            name: "#" + this.generatedAnchorsCount,
-            lla: lla,
-            pos: pos,
-            neighbours: {}
-          });
-        this.generatedAnchorsCount++;
-      }
-      // console.log(this.anchors)
-      //Zu Ankern die per Hand und ohne Angabe einer Position hinzugefügt wurden, können keine Abstände bestimmt werden
-      this.anchors.filter(elem => { return elem.pos.x && elem.pos.y && elem.pos.z }).forEach((a) => {
-        a.neighbours = {};
-        this.anchors.filter(elem => { return elem.pos.x && elem.pos.y && elem.pos.z }).forEach((b, i) => {
-          let dist = Math.sqrt(Math.pow(a.pos.x - b.pos.x, 2) + Math.pow(a.pos.y - b.pos.y, 2) + Math.pow(a.pos.z - b.pos.z, 2)) + functions.getRandom(-accuracyUWBVal, accuracyUWBVal);
-          // if (dist < rangeUWB + functions.getRandom(-rangeToleranceUWB, rangeToleranceUWB) || ((!a.lla.lat || !a.lla.lon || !a.lla.alt) && (!b.lla.lat || !b.lla.lon || !b.lla.alt))) { // Abstände zwischen zwei RTK-Ankern sollen snicht bestimt werden
-          if (dist < rangeUWBVal + functions.getRandom(-rangeToleranceUWBVal, rangeToleranceUWBVal) || (a.lla.lat && a.lla.lon && a.lla.alt && b.lla.lat && b.lla.lon && b.lla.alt)) {
-            // console.log(a.name + "" + b.name);
-            a.neighbours[b.name] = dist;
-          }
-        });
-      });
-      this.anchors = [...this.anchors];
-      console.log(Object.keys(this.anchors[0].neighbours).length)
-    }
-    else {
-      console.log("totalCount: " + totalCountVal);
-      console.log("fixedCount: " + fixedCountVal);
-      console.log("rangeUWB: " + rangeUWBVal);
-      console.log("rangeToleranceUWB: " + rangeToleranceUWBVal);
-      console.log("accuracyUWB: " + accuracyUWBVal);
-      console.log("originLat: " + this.setupCOS.lat);
-      console.log("originLon: " + this.setupCOS.lon);
-      console.log("layerCount: " + this.setupCOS.sortedLayers.length);
-      console.log("width: " + this.setupCOS.width);
-      console.log("length: " + this.setupCOS.length);
-      console.log("rotation: " + this.setupCOS.rotation);
-    }
-  }
-  nameRegex(event) {
-    this.selectedAnchor.name = event.target.value.replace('#', '');
-  }
-  neighboursCount(anchor) {
-    return Object.keys(anchor.neighbours).length;
-  }
-  distChange(value) {
-    let dist = parseFloat(value);
-    if (dist) {
-      this.selectedAnchor.neighbours[this.selectedNeighbour.name] = dist;
-    }
-    else {
-      delete this.selectedAnchor.neighbours[this.selectedNeighbour.name];
-    }
-  }
-  constructor() {
+    constructor() {
 
   }
   ngOnInit() {
@@ -122,6 +40,9 @@ export class AppComponent implements OnInit {
   }
   nextStep() {
     this.step++;
+    if (this.step == 3) {
+
+    }
   }
 
   //Setup
@@ -146,6 +67,7 @@ export class AppComponent implements OnInit {
       }
       if (content.anchors) {
         self.anchors = [...content.anchors];
+        self.generatedAnchorsCount = Math.max(...self.anchors.map(elem => { return elem.name.startsWith("#") ? elem.name.substr(1) : 0 })) + 1;
       }
     }
     fileReader.readAsText(file);
@@ -188,17 +110,108 @@ export class AppComponent implements OnInit {
   }
 
   //Setup2
+  generateAnchors(totalCount, fixedCount, rangeUWB, rangeToleranceUWB, accuracyUWB) {
+    let totalCountVal = parseFloat(totalCount.value);
+    let fixedCountVal = parseFloat(fixedCount.value);
+    let rangeUWBVal = parseFloat(rangeUWB.value);
+    let rangeToleranceUWBVal = parseFloat(rangeToleranceUWB.value);
+    let accuracyUWBVal = parseFloat(accuracyUWB.value);
+    if (this.setupCOS.lat && this.setupCOS.lon && this.setupCOS.sortedLayers.length > 0 && this.setupCOS.length && this.setupCOS.width && this.setupCOS.rotation && totalCountVal > 0 && fixedCountVal >= 0 && rangeUWBVal > 0 && rangeToleranceUWBVal >= 0 && accuracyUWBVal >= 0) {
+      let buildingOrigin = functions.altlatlon2ecef({ lat: this.setupCOS.lat, lon: this.setupCOS.lon, alt: 57 });
+      //Für alle Anker die lat,lon,alt angebenen haben=>x,y,z bestimmen
+      this.anchors.filter(elem => { elem.lla.lat && elem.lla.lon && elem.lla.alt }).forEach(elem => {
+        elem.pos = functions.altlatlon2ecef(elem.lla);
+        elem.pos.x = (elem.pos.x - buildingOrigin.x)
+        elem.pos.y = (elem.pos.y - buildingOrigin.y)
+        elem.pos.z = (elem.pos.z - buildingOrigin.z)
+      });
+      //Array mit neuen Anker erstellen(random x, y, z )
+      for (let i = 0; i < totalCountVal; i++) {
+        let x = functions.getRandom(-this.setupCOS.width / 2, this.setupCOS.width / 2);
+        let y = functions.getRandom(-this.setupCOS.length / 2, this.setupCOS.length / 2);
+        let pos = {
+          x: (Math.cos(this.setupCOS.rotation) * x - Math.sin(this.setupCOS.rotation) * y) / 100,
+          y: (Math.sin(this.setupCOS.rotation) * x + Math.cos(this.setupCOS.rotation) * y) / 100,
+          z: functions.getRandom(this.setupCOS.sortedLayers[0].position.y, this.setupCOS.sortedLayers[this.setupCOS.sortedLayers.length - 1].position.y) / 100
+        };
+        let lla = { lat: null, lon: null, alt: null };
+        if (i < fixedCountVal) {
+          lla = functions.ecef2altlatlon(functions.test(buildingOrigin, pos))
+          // console.log(lla)
+          // console.log(pos.z)
+        }
+        this.anchors.push(
+          {
+            name: "#" + this.generatedAnchorsCount,
+            lla: lla,
+            pos: pos,
+            neighbours: {}
+          });
+        this.generatedAnchorsCount++;
+      }
+      // console.log(this.anchors)
+      //Zu Ankern die per Hand und ohne Angabe einer Position hinzugefügt wurden, können keine Abstände bestimmt werden
+      this.anchors.filter(elem => { return elem.pos.x && elem.pos.y && elem.pos.z }).forEach((a) => {
+        a.neighbours = {};
+        a.neighbours[a.name]=0;
+        this.anchors.filter(elem => { return elem.pos.x && elem.pos.y && elem.pos.z }).forEach((b, i) => {
+          let dist = Math.sqrt(Math.pow(a.pos.x - b.pos.x, 2) + Math.pow(a.pos.y - b.pos.y, 2) + Math.pow(a.pos.z - b.pos.z, 2)) + functions.getRandom(-accuracyUWBVal, accuracyUWBVal);
+          if ((dist < rangeUWBVal + functions.getRandom(-rangeToleranceUWBVal, rangeToleranceUWBVal)) && (!a.lla.lat || !a.lla.lon || !a.lla.alt || !b.lla.lat || !b.lla.lon || !b.lla.alt)) { // Abstände zwischen zwei RTK-Ankern sollen nicht bestimt werden
+          // if ((dist < rangeUWBVal + functions.getRandom(-rangeToleranceUWBVal, rangeToleranceUWBVal)) || (a.lla.lat && a.lla.lon && a.lla.alt && b.lla.lat && b.lla.lon && b.lla.alt)) {
+            // console.log(a.name + "" + b.name);
+            a.neighbours[b.name] = dist;
+          }
+        });
+      });
+      this.anchors = [...this.anchors];
+    }
+    else {
+      console.log("totalCount: " + totalCountVal);
+      console.log("fixedCount: " + fixedCountVal);
+      console.log("rangeUWB: " + rangeUWBVal);
+      console.log("rangeToleranceUWB: " + rangeToleranceUWBVal);
+      console.log("accuracyUWB: " + accuracyUWBVal);
+      console.log("originLat: " + this.setupCOS.lat);
+      console.log("originLon: " + this.setupCOS.lon);
+      console.log("layerCount: " + this.setupCOS.sortedLayers.length);
+      console.log("width: " + this.setupCOS.width);
+      console.log("length: " + this.setupCOS.length);
+      console.log("rotation: " + this.setupCOS.rotation);
+    }
+  }
   addAnchor() {
-    this.anchors = [...this.anchors, new knoten(this.anchors.length + 1, null)];
+    this.anchors = [...this.anchors, { name: "#" + this.generatedAnchorsCount, pos: { x: null, y: null, z: null }, lla: { lat: null, lon: null, alt: null }, neighbours: {} }];
   }
   removeAnchor() {
     let index = this.anchors.indexOf(this.selectedAnchor);
+    this.anchors.forEach(elem=>{
+      if(elem.neighbours[this.selectedAnchor.name]){
+        delete elem.neighbours[this.selectedAnchor.name];
+      }
+    });
     this.anchors = this.anchors.filter(elem => { return elem != this.selectedAnchor });
     if (this.selectedNeighbour == this.selectedAnchor) {
       this.selectedNeighbour = this.anchors[index] || this.anchors[index - 1] || null;
     }
     this.selectedAnchor = this.anchors[index] || this.anchors[index - 1] || null;
+    this.generatedAnchorsCount = Math.max(...this.anchors.map(elem => { return elem.name.startsWith("#") ? elem.name.substr(1) : 0 }),-1) + 1;
   }
+  distChange(value) {
+    let dist = parseFloat(value);
+    if (dist) {
+      this.selectedAnchor.neighbours[this.selectedNeighbour.name] = dist;
+    }
+    else {
+      delete this.selectedAnchor.neighbours[this.selectedNeighbour.name];
+    }
+  }
+  neighboursCount(anchor) {
+    return Object.keys(anchor.neighbours).length - 1;
+  }
+  nameRegex(event) {
+    this.selectedAnchor.name = event.target.value.replace('#', '');
+  }
+
 }
 
 

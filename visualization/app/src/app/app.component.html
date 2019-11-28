@@ -167,7 +167,7 @@
                   <i class="fas fa-tag fa-stack-1x"></i>
                 </span>
                 <input type="text" pInputText placeholder="OG 105" *ngIf="selectedAnchor" #name style="width:100%"
-                  [(ngModel)]="selectedAnchor.name" maxlength="10" size="8" (keyup)="nameRegex($event)"
+                  [(ngModel)]="selectedAnchor.name" maxlength="10" (keyup)="nameRegex($event)"
                   pTooltip="Bezeichnung des Ankers" tooltipPosition="top">
                 <!-- onkeydown="return /[a-zA-Z0-9\s]/i.test(event.key)" -->
               </div>
@@ -177,8 +177,7 @@
                   <i class="fa fa-arrows-alt-v fa-stack-1x fa-inverse"></i>
                 </span>
                 <input type="text" pInputText placeholder="±52.450302" *ngIf="selectedAnchor" style="width:100%"
-                  [(ngModel)]="selectedAnchor.lla.lat" maxlength="10" size="8" pTooltip="Optional: Latitude des Ankers"
-                  tooltipPosition="top">
+                  [(ngModel)]="selectedAnchor.lla.lat" pTooltip="Optional: Latitude des Ankers" tooltipPosition="top">
               </div>
               <div class="ui-inputgroup" [class.gradUnit]="selectedAnchor">
                 <span class="ui-inputgroup-addon fa-stack">
@@ -186,22 +185,21 @@
                   <i class="fa fa-arrows-alt-h fa-stack-1x fa-inverse"></i>
                 </span>
                 <input type="text" pInputText placeholder="±013.293496" *ngIf="selectedAnchor" style="width:100%"
-                  [(ngModel)]="selectedAnchor.lla.lon" maxlength="10" size="8" pTooltip="Optional: Longitude des Ankers"
-                  tooltipPosition="top">
+                  [(ngModel)]="selectedAnchor.lla.lon" pTooltip="Optional: Longitude des Ankers" tooltipPosition="top">
               </div>
               <div class="ui-inputgroup" [class.meterUnit]="selectedAnchor">
                 <span class="ui-inputgroup-addon fa-stack">
                   <i class="fas fa-arrow-up fa-stack-1x"></i>
                 </span>
                 <input type="text" pInputText placeholder="19.392" *ngIf="selectedAnchor" style="width:100%"
-                  [(ngModel)]="selectedAnchor.lla.alt" maxlength="10" size="8"
-                  pTooltip="Optional: Höhe des Ankers über NN" tooltipPosition="top">
+                  [(ngModel)]="selectedAnchor.lla.alt" pTooltip="Optional: Höhe des Ankers über NN"
+                  tooltipPosition="top">
               </div>
             </div>
-            <p-listbox [options]="anchors" [(ngModel)]="selectedAnchor" optionLabel="name">
+            <p-listbox [options]="anchors" [(ngModel)]="selectedAnchor" optionLabel="name" (onChange)="selectedNeighbour=null">
               <ng-template let-anchor let-i="index" pTemplate="item">
-                <div style="border-radius:5px;padding:0 0.857em;"
-                  [style.background]="anchors[i].lla.lat&&anchors[i].lla.lon&&anchors[i].lla.alt?'green':'unset'">
+                <div style="padding:0 0.857em;"
+                  [style.background]="anchors[i].lla.lat&&anchors[i].lla.lon&&anchors[i].lla.alt?'rgba(100,205,30,0.8)':'unset'">
                   <p style="height:4vmin;font-size: 2vmin;vertical-align: middle;display: table-cell;">
                     {{anchors[i].name}} ({{neighboursCount(anchors[i])}} Nachb.)
                   </p>
@@ -221,11 +219,12 @@
             <p-listbox [options]="anchors" [(ngModel)]="selectedNeighbour" optionLabel="name">
               <!-- .filter(elem=>{return elem.neighbours[selectedAnchor.name]}) -->
               <ng-template let-anchor let-i="index" pTemplate="item">
-                <div style="border-radius:5px;padding:0 0.857em;"
+                <div style="padding:0 0.857em;"
                   *ngIf="selectedAnchor&&selectedAnchor!=anchors[i]&&(!filterNeighbours||selectedAnchor.neighbours[anchors[i].name])"
-                  [style.background]="selectedAnchor&&selectedAnchor.neighbours[anchors[i].name]?'green':'unset'">
+                  [style.background]="selectedAnchor&&selectedAnchor.neighbours[anchors[i].name]?'rgba(100,205,30,0.8)':'unset'">
                   <p style="height:4vmin;font-size: 2vmin;vertical-align: middle;display: table-cell;">
-                    {{anchors[i].name}}  {{selectedAnchor.neighbours[anchors[i].name] ? ' - '+(selectedAnchor.neighbours[anchors[i].name]|number: '1.2-2') + 'm' : ''}}
+                    {{anchors[i].name}}
+                    {{selectedAnchor.neighbours[anchors[i].name] ? ' - '+(selectedAnchor.neighbours[anchors[i].name]|number: '1.2-2') + 'm' : ''}}
                   </p>
                 </div>
               </ng-template>
@@ -238,7 +237,7 @@
                 </span>
                 <input type="text" pInputText placeholder="10.32" style="width:100%"
                   *ngIf="selectedAnchor && selectedNeighbour && selectedAnchor != selectedNeighbour"
-                  [ngModel]="selectedAnchor.neighbours[selectedNeighbour.name]" maxlength="6" size="8" (ngModelChange)="distChange($event)"
+                  [ngModel]="selectedAnchor.neighbours[selectedNeighbour.name]" (ngModelChange)="distChange($event)"
                   pTooltip="Optional: Entfernung zwischen Anker und Nachbar" tooltipPosition="top">
               </div>
               <p-checkbox name="single" [(ngModel)]="filterNeighbours" binary="true"

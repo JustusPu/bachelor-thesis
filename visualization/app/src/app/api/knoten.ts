@@ -1,10 +1,7 @@
 export class knoten {
     name: string;
-    neighbours;
-    pos: object;
-    lat: number;
-    lon: number;
-    alt: number;
+    neighbours: any[];
+    pos: any;
     hasNeighbour(node) {
         return false;
     }

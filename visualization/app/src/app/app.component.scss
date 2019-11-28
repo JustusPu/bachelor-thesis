@@ -162,6 +162,11 @@
 }
 .ui-listbox-item {
   padding: 0 !important;
+  border-radius:10px !important;
+}
+li:focus{
+  // background-color:unset !important;
+  outline:unset;
 }
 .ui-listbox-list-wrapper{
   height: 20vh;
