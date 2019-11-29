@@ -14,6 +14,7 @@ export class CosComponent implements OnInit, AfterViewInit {
   @Input() canvasHeight;
   lat: number = 52.455992;
   lon: number = 13.297124;
+  alt: number = 57;
   zoom: number = 19;
   rotation: number = 34;
   width: number = 7804;
@@ -54,7 +55,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.addWall();
     this.addLayers();
     this.addTag();
-    this.moveTag(0, 500, 0);
+    this.moveTag(0, -500, 0);
   }
   ngAfterViewInit() {
     this.canvas.nativeElement.width = screen.width;//this.canvasWidth;//
@@ -253,9 +254,16 @@ export class CosComponent implements OnInit, AfterViewInit {
     }
   }
 
-  addNode() {
-    this.nodes.push(new THREE.Mesh(new THREE.SphereGeometry(30, 32, 32), new THREE.MeshBasicMaterial({ color: 0xff0000 })));
-    this.scene.add(this.nodes[this.nodes.length - 1]);
+  addNode(pos?, color?) {
+    let node = new THREE.Mesh(new THREE.SphereGeometry(30, 32, 32), new THREE.MeshBasicMaterial({ color: color }))
+    if (pos) {
+      node.position.x = pos.x;
+      node.position.y = pos.z;
+      node.position.z = pos.y;
+    }
+    this.nodes.push(node);
+    this.scene.add(node);
+    return this.addNode.length - 1;
   }
   setNodePosition(i, x, y, z) {
     this.nodes[i].position.x = x;
@@ -271,6 +279,13 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.tag.position.x += x;
     this.tag.position.y += y;
     this.tag.position.z += z;
+    this.refreshLayer();
+    // console.log(this.tag.position.x, this.tag.position.y, this.tag.position.z)
+  }
+  setTagPosition(pos) {
+    this.tag.position.x = pos.x * 100;
+    this.tag.position.y = pos.z * 100;
+    this.tag.position.z = pos.y * 100;
     this.refreshLayer();
     // console.log(this.tag.position.x, this.tag.position.y, this.tag.position.z)
   }

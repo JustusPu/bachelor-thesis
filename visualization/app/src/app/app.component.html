@@ -3,7 +3,7 @@
     <button title="Toogle" class="title toggle-button" (click)="sidebarVisable=true">
       <i class="fas fa-bars"></i>
     </button>
-    <span class="title">Setup</span>
+    <span class="title">{{step==4?'Ortung':step==3?'Algorithmus':'Setup'}}</span>
     <button title="Load" class="next-button" *ngIf="step==1" (click)="fileDialog.click()">Laden</button>
     <button title="Save" class="next-button" *ngIf="step==2" (click)="saveSetup()">Speichern</button>
     <button title="Platzhalter" class="next-button" *ngIf="step>2" style="visibility: hidden;"
@@ -131,14 +131,14 @@
           </ng-template>
         </p-fileUpload>
       </div>
-      <div class="ui-lg-6 ui-g-12 frame">
+      <div class="ui-lg-6 ui-g-12 frame" style="overflow: hidden;">
         <app-cos #setupCOS canvasWidth="100%" canvasHeight="100%"></app-cos>
       </div>
     </div>
     <div [style.display]="step==2?'unset':'none'" class="step">
       <div class="frame">
         <p class="headline">Anker:</p>
-        <p-fieldset legend="Generieren" [style]="{width:'100%'}">
+        <p-fieldset legend="Generieren">
           <div>
             <input type="text" pInputText placeholder="30" value="30" maxlength="3" size="1"
               pTooltip="Anzahl der zu generieren Anker" tooltipPosition="top" #totalCount> Anker davon für<br>
@@ -147,114 +147,234 @@
           </div>
           <div>
             UWB-Reichweite: <br>
-            <input type="text" pInputText placeholder="15" value="15" maxlength="5" size="1" #rangeUWB>m ±
+            <input type="text" pInputText placeholder="15" value="30" maxlength="5" size="1" #rangeUWB>m ±
             <input type="text" pInputText placeholder="2" value="2" maxlength="5" size="1" #rangeToleranceUWB>m
           </div>
           <div>
             UWB-Genauigkeit:<br>
-            <input type="text" pInputText placeholder="0.1" value="0.1" maxlength="5" size="1" #accuracyUWB>m
+            ±<input type="text" pInputText placeholder="0.1" value="0" maxlength="5" size="1" #accuracyUWB disabled>m
           </div>
           <div>
             <button type="button" class="add-button"
-              (click)="generateAnchors(totalCount,fixedCount,rangeUWB,rangeToleranceUWB,accuracyUWB)">Generieneren</button>
+              (click)="generateAnchors(totalCount,fixedCount,rangeUWB,rangeToleranceUWB,accuracyUWB)">Generieren</button>
           </div>
         </p-fieldset>
         <div style="display:flex;justify-content: space-around;flex-wrap: wrap;">
-          <p-fieldset legend="Knoten">
-            <div style="padding-right:10px; width: 100%;">
-              <div class="ui-inputgroup" [class.spaceUnit]="selectedAnchor">
-                <span class="ui-inputgroup-addon fa-stack">
-                  <i class="fas fa-tag fa-stack-1x"></i>
-                </span>
-                <input type="text" pInputText placeholder="OG 105" *ngIf="selectedAnchor" #name style="width:100%"
-                  [(ngModel)]="selectedAnchor.name" maxlength="10" (keyup)="nameRegex($event)"
-                  pTooltip="Bezeichnung des Ankers" tooltipPosition="top">
-                <!-- onkeydown="return /[a-zA-Z0-9\s]/i.test(event.key)" -->
-              </div>
-              <div class="ui-inputgroup" [class.gradUnit]="selectedAnchor">
-                <span class="ui-inputgroup-addon fa-stack">
-                  <i class="fa fa-globe fa-stack-1x"></i>
-                  <i class="fa fa-arrows-alt-v fa-stack-1x fa-inverse"></i>
-                </span>
-                <input type="text" pInputText placeholder="±52.450302" *ngIf="selectedAnchor" style="width:100%"
-                  [(ngModel)]="selectedAnchor.lla.lat" pTooltip="Optional: Latitude des Ankers" tooltipPosition="top">
-              </div>
-              <div class="ui-inputgroup" [class.gradUnit]="selectedAnchor">
-                <span class="ui-inputgroup-addon fa-stack">
-                  <i class="fa fa-globe fa-stack-1x"></i>
-                  <i class="fa fa-arrows-alt-h fa-stack-1x fa-inverse"></i>
-                </span>
-                <input type="text" pInputText placeholder="±013.293496" *ngIf="selectedAnchor" style="width:100%"
-                  [(ngModel)]="selectedAnchor.lla.lon" pTooltip="Optional: Longitude des Ankers" tooltipPosition="top">
-              </div>
-              <div class="ui-inputgroup" [class.meterUnit]="selectedAnchor">
-                <span class="ui-inputgroup-addon fa-stack">
-                  <i class="fas fa-arrow-up fa-stack-1x"></i>
-                </span>
-                <input type="text" pInputText placeholder="19.392" *ngIf="selectedAnchor" style="width:100%"
-                  [(ngModel)]="selectedAnchor.lla.alt" pTooltip="Optional: Höhe des Ankers über NN"
-                  tooltipPosition="top">
-              </div>
-            </div>
-            <p-listbox [options]="anchors" [(ngModel)]="selectedAnchor" optionLabel="name" (onChange)="selectedNeighbour=null">
-              <ng-template let-anchor let-i="index" pTemplate="item">
-                <div style="padding:0 0.857em;"
-                  [style.background]="anchors[i].lla.lat&&anchors[i].lla.lon&&anchors[i].lla.alt?'rgba(100,205,30,0.8)':'unset'">
-                  <p style="height:4vmin;font-size: 2vmin;vertical-align: middle;display: table-cell;">
-                    {{anchors[i].name}} ({{neighboursCount(anchors[i])}} Nachb.)
-                  </p>
+          <div style="flex: 1 0 0;">
+            <p-fieldset legend="Knoten">
+              <div style="padding-right:10px; width: 100%;min-width: 20vw;">
+                <div class="ui-inputgroup" [class.spaceUnit]="selectedAnchor">
+                  <span class="ui-inputgroup-addon fa-stack">
+                    <i class="fas fa-tag fa-stack-1x"></i>
+                  </span>
+                  <input type="text" pInputText placeholder="OG 105" *ngIf="selectedAnchor" #name style="width:100%"
+                    [(ngModel)]="selectedAnchor.name" maxlength="10" (keyup)="nameRegex($event)"
+                    pTooltip="Bezeichnung des Ankers" tooltipPosition="top">
+                  <!-- onkeydown="return /[a-zA-Z0-9\s]/i.test(event.key)" -->
                 </div>
-              </ng-template>
-            </p-listbox>
-            <div style="display:flex;align-items: flex-end;">
-              <button type="button" class="add-button" (click)="addAnchor()">
-                <span class="fas fa-plus"></span>
-              </button>
-              <button type="button" class="add-button" (click)="removeAnchor()">
-                <span class="fas fa-minus"></span>
-              </button>
-            </div>
-          </p-fieldset>
-          <p-fieldset legend="Nachbarn">
-            <p-listbox [options]="anchors" [(ngModel)]="selectedNeighbour" optionLabel="name">
-              <!-- .filter(elem=>{return elem.neighbours[selectedAnchor.name]}) -->
-              <ng-template let-anchor let-i="index" pTemplate="item">
-                <div style="padding:0 0.857em;"
-                  *ngIf="selectedAnchor&&selectedAnchor!=anchors[i]&&(!filterNeighbours||selectedAnchor.neighbours[anchors[i].name])"
-                  [style.background]="selectedAnchor&&selectedAnchor.neighbours[anchors[i].name]?'rgba(100,205,30,0.8)':'unset'">
-                  <p style="height:4vmin;font-size: 2vmin;vertical-align: middle;display: table-cell;">
-                    {{anchors[i].name}}
-                    {{selectedAnchor.neighbours[anchors[i].name] ? ' - '+(selectedAnchor.neighbours[anchors[i].name]|number: '1.2-2') + 'm' : ''}}
-                  </p>
+                <div class="ui-inputgroup" [class.gradUnit]="selectedAnchor">
+                  <span class="ui-inputgroup-addon fa-stack">
+                    <i class="fa fa-globe fa-stack-1x"></i>
+                    <i class="fa fa-arrows-alt-v fa-stack-1x fa-inverse"></i>
+                  </span>
+                  <input type="text" pInputText placeholder="±52.450302" *ngIf="selectedAnchor" style="width:100%"
+                    [(ngModel)]="selectedAnchor.lla.lat" pTooltip="Optional: Latitude des Ankers" tooltipPosition="top">
                 </div>
-              </ng-template>
-            </p-listbox>
-            <div style="padding-left: 10px;">
-              <div class="ui-inputgroup"
-                [class.meterUnit]="selectedAnchor && selectedNeighbour && selectedAnchor != selectedNeighbour">
-                <span class="ui-inputgroup-addon fa-stack">
-                  <i class="fas fa-ruler-horizontal fa-stack-1x"></i>
-                </span>
-                <input type="text" pInputText placeholder="10.32" style="width:100%"
-                  *ngIf="selectedAnchor && selectedNeighbour && selectedAnchor != selectedNeighbour"
-                  [ngModel]="selectedAnchor.neighbours[selectedNeighbour.name]" (ngModelChange)="distChange($event)"
-                  pTooltip="Optional: Entfernung zwischen Anker und Nachbar" tooltipPosition="top">
+                <div class="ui-inputgroup" [class.gradUnit]="selectedAnchor">
+                  <span class="ui-inputgroup-addon fa-stack">
+                    <i class="fa fa-globe fa-stack-1x"></i>
+                    <i class="fa fa-arrows-alt-h fa-stack-1x fa-inverse"></i>
+                  </span>
+                  <input type="text" pInputText placeholder="±013.293496" *ngIf="selectedAnchor" style="width:100%"
+                    [(ngModel)]="selectedAnchor.lla.lon" pTooltip="Optional: Longitude des Ankers"
+                    tooltipPosition="top">
+                </div>
+                <div class="ui-inputgroup" [class.meterUnit]="selectedAnchor">
+                  <span class="ui-inputgroup-addon fa-stack">
+                    <i class="fas fa-arrow-up fa-stack-1x"></i>
+                  </span>
+                  <input type="text" pInputText placeholder="19.392" *ngIf="selectedAnchor" style="width:100%"
+                    [(ngModel)]="selectedAnchor.lla.alt" pTooltip="Optional: Höhe des Ankers über NN"
+                    tooltipPosition="top">
+                </div>
               </div>
-              <p-checkbox name="single" [(ngModel)]="filterNeighbours" binary="true"
-                label="Nur bestimmte Nachbarn anzeigen"></p-checkbox>
-            </div>
-          </p-fieldset>
+              <p-listbox [options]="anchors" [(ngModel)]="selectedAnchor" optionLabel="name"
+                (onChange)="selectedNeighbour=null">
+                <ng-template let-anchor let-i="index" pTemplate="item">
+                  <div style="padding:0 0.857em;"
+                    [style.background]="anchors[i].lla.lat&&anchors[i].lla.lon&&anchors[i].lla.alt?'rgba(100,205,30,0.8)':'unset'">
+                    <p style="height:4vmin;font-size: 2vmin;vertical-align: middle;display: table-cell;">
+                      {{anchors[i].name}} ({{neighboursCount(anchors[i])}} Nachb.)
+                    </p>
+                  </div>
+                </ng-template>
+              </p-listbox>
+              <div style="display:flex;align-items: flex-end;">
+                <button type="button" class="add-button" (click)="addAnchor()">
+                  <span class="fas fa-plus"></span>
+                </button>
+                <button type="button" class="add-button" (click)="removeAnchor()">
+                  <span class="fas fa-minus"></span>
+                </button>
+              </div>
+            </p-fieldset>
+          </div>
+          <div style="flex: 1 0 0;">
+            <p-fieldset legend="Nachbarn">
+              <p-listbox [options]="anchors" [(ngModel)]="selectedNeighbour" optionLabel="name">
+                <!-- .filter(elem=>{return elem.neighbours[selectedAnchor.name]}) -->
+                <ng-template let-anchor let-i="index" pTemplate="item">
+                  <div style="padding:0 0.857em;"
+                    *ngIf="selectedAnchor&&selectedAnchor!=anchors[i]&&(!filterNeighbours||selectedAnchor.neighbours[anchors[i].name])"
+                    [style.background]="selectedAnchor&&selectedAnchor.neighbours[anchors[i].name]?'rgba(100,205,30,0.8)':'unset'">
+                    <p style="height:4vmin;font-size: 2vmin;vertical-align: middle;display: table-cell;">
+                      {{anchors[i].name}}
+                      {{selectedAnchor.neighbours[anchors[i].name] ? ' - '+(selectedAnchor.neighbours[anchors[i].name]|number: '1.2-2') + 'm' : ''}}
+                    </p>
+                  </div>
+                </ng-template>
+              </p-listbox>
+              <div style="padding-left: 10px;min-width: 20vw;">
+                <div class="ui-inputgroup"
+                  [class.meterUnit]="selectedAnchor && selectedNeighbour && selectedAnchor != selectedNeighbour">
+                  <span class="ui-inputgroup-addon fa-stack">
+                    <i class="fas fa-ruler-horizontal fa-stack-1x"></i>
+                  </span>
+                  <input type="text" pInputText placeholder="10.32" style="width:100%"
+                    *ngIf="selectedAnchor && selectedNeighbour && selectedAnchor != selectedNeighbour"
+                    [ngModel]="selectedAnchor.neighbours[selectedNeighbour.name]" (ngModelChange)="distChange($event)"
+                    pTooltip="Optional: Entfernung zwischen Anker und Nachbar" tooltipPosition="top">
+                </div>
+                <p-checkbox name="single" [(ngModel)]="filterNeighbours" binary="true"
+                  label="Nur bestimmte Nachbarn anzeigen"></p-checkbox>
+              </div>
+            </p-fieldset>
+          </div>
         </div>
+      </div>
+    </div>
+    <div [style.display]="step==3?'unset':'none'" class="step">
+      <div class="frame">
+        <p class="headline">Hier folgt die Darstellung der Zwischenschritte:</p>
+      </div>
+    </div>
+    <div [style.display]="step==4?'unset':'none'" class="step">
+      <div class="ui-lg-6 ui-g-12 frame">
+        <p class="headline">Ortung:</p>
+        <p-fieldset legend="Generieren">
+          <div>
+            <input type="text" pInputText placeholder="60" value="60" maxlength="5" size="1" #tagsCount> Ortungen
+          </div>
+          <div>
+            UWB-Reichweite: <br>
+            <input type="text" pInputText placeholder="15" value="30" maxlength="5" size="1" #rangeTagUWB>m ±
+            <input type="text" pInputText placeholder="2" value="2" maxlength="5" size="1" #rangeToleranceTagUWB>m
+          </div>
+          <div>
+            UWB-Genauigkeit:<br>
+            ±<input type="text" pInputText placeholder="0.1" value="0.1" maxlength="5" size="1" #accuracyTagUWB>m
+          </div>
+          <div>
+            <button type="button" class="add-button"
+              (click)="generateTagTimes(tagsCount,rangeTagUWB,rangeToleranceTagUWB,accuracyTagUWB)">Generieren</button>
+          </div>
+        </p-fieldset>
+        <div style="display:flex;justify-content: space-around;flex-wrap: wrap;">
+          <div style="flex: 1 0 0;">
+            <p-fieldset legend="Zeitpunkt">
+              <p-listbox [options]="tags" [(ngModel)]="selectedTag" optionLabel="time"
+                (onChange)="selectedTagNeighbour=null">
+                <ng-template let-time let-i="index" pTemplate="item">
+                  <div style="padding:0 0.857em;">
+                    <!-- [style.background]="anchors[i].lla.lat&&anchors[i].lla.lon&&anchors[i].lla.alt?'rgba(100,205,30,0.8)':'unset'"> -->
+                    <p style="height:4vmin;font-size: 2vmin;vertical-align: middle;display: table-cell;">
+                      t{{i}} ({{tags[i].time|date:'HH:mm:ss'}})
+                    </p>
+                  </div>
+                </ng-template>
+              </p-listbox>
+              <div style="display:flex;align-items: flex-end;">
+                <button type="button" class="add-button" (click)="addTagTime()">
+                  <span class="fas fa-plus"></span>
+                </button>
+                <button type="button" class="add-button" (click)="removeTagTime()">
+                  <span class="fas fa-minus"></span>
+                </button>
+              </div>
+            </p-fieldset>
+          </div>
+          <div style="flex: 1 0 0;">
+            <p-fieldset legend="Nachbarn">
+              <p-listbox [options]="anchors" [(ngModel)]="selectedTagNeighbour" optionLabel="name">
+                <ng-template let-anchor let-i="index" pTemplate="item">
+                  <div style="padding:0 0.857em;"
+                    *ngIf="selectedTag&&(!filterTagNeighbours||selectedTag.neighbours[anchors[i].name])"
+                    [style.background]="selectedTag.neighbours[anchors[i].name]?'rgba(100,205,30,0.8)':'unset'">
+                    <p style="height:4vmin;font-size: 2vmin;vertical-align: middle;display: table-cell;">
+                      {{anchors[i].name}}
+                      {{selectedTag.neighbours[anchors[i].name] ? ' - '+(selectedTag.neighbours[anchors[i].name]|number: '1.2-2') + 'm' : ''}}
+                    </p>
+                  </div>
+                </ng-template>
+              </p-listbox>
+              <div style="padding-left: 10px;">
+                <div class="ui-inputgroup" [class.meterUnit]="selectedTag && selectedTagNeighbour">
+                  <span class="ui-inputgroup-addon fa-stack">
+                    <i class="fas fa-ruler-horizontal fa-stack-1x"></i>
+                  </span>
+                  <input type="text" pInputText placeholder="10.32" style="width:100%"
+                    *ngIf="selectedTag && selectedTagNeighbour"
+                    [ngModel]="selectedTag.neighbours[selectedTagNeighbour.name]"
+                    (ngModelChange)="tagDistChange($event)"
+                    pTooltip="Optional: Entfernung zwischen Tag und Nachbar zum ausgewählten Zeitpunkt"
+                    tooltipPosition="top">
+                </div>
+                <p-checkbox name="single" [(ngModel)]="filterTagNeighbours" binary="true"
+                  label="Nur bestimmte Nachbarn anzeigen"></p-checkbox>
+              </div>
+            </p-fieldset>
+          </div>
+        </div>
+      </div>
+      <div class="ui-lg-1 ui-g-12 frame" style="display:table;">
+        <div
+          style="color: #ffffff !important; font-style: normal; font-weight: 400;font-family: 'Open Sans', 'Helvetica Neue', sans-serif;font-size:3vmin; display: table-cell; vertical-align: middle;">
+          <button title="Play" class="next-button" (click)="playTag()">
+            <span class="fas fa-play"></span>
+          </button>
+          <button title="Pause" class="next-button" style="float: right;" (click)="pauseTag()">
+            <span class="fas fa-pause"></span>
+          </button><br><br>
+          <button title="Previous" class="next-button" (click)="prevTag()">
+            <span class="fas fa-step-backward"></span>
+          </button>
+          <button title="Next" class="next-button" style="float: right;" (click)="nextTag()">
+            <span class="fas fa-step-forward"></span>
+          </button><br><br>
+          <button title="First" class="next-button" (click)="firstTag()">
+            <span class="fas fa-fast-backward"></span>
+          </button>
+          <button title="Last" class="next-button" style="float: right;" (click)="lastTag()">
+            <span class="fas fa-fast-forward"></span>
+          </button>
+          <p-checkbox name="single" [(ngModel)]="showTrack" binary="true" label="Spur?"></p-checkbox><br>
+          Lat:<br><span style="font-size:2vmin;">{{currentlla?(currentlla.lat|number:'1.6-6'):''}}</span><br>
+          Lon:<br><span style="font-size:2vmin;">{{currentlla?(currentlla.lon|number:'1.6-6'):''}}</span><br>
+          Alt:<br><span style="font-size:2vmin;">{{currentlla?(currentlla.alt|number:'1.6-6'):''}}</span><br>
+        </div>
+      </div>
+      <div class=" ui-lg-5 ui-g-12 frame" style="overflow: hidden;">
+        <app-cos #tagCOS canvasWidth="100%" canvasHeight="100%"></app-cos>
       </div>
     </div>
   </div>
   <div class="footer">
-    <button title="Next" class="next-button" [style.visibility]="step>1?'visible':'hidden'"
-      (click)="prevStep()">Zurück</button>
-    <button title="Next" class="next-button" [style.display]="step==1?'unset':'none'"
-      (click)="nextStep()">Weiter</button>
-    <button title="Next" class="next-button" [style.display]="step==2?'unset':'none'" (click)="nextStep()">Berechnung
-      starten</button>
+    <button title="Next" class="next-button" [style.visibility]="step>1?'visible':'hidden'" (click)="prevStep()">
+      Zurück
+    </button>
+    <button title="Next" class="next-button" [style.visibility]="step<4?'visible':'hidden'" (click)="nextStep()">
+      {{step==2?'Berechnung starten':'Weiter'}}
+    </button>
   </div>
 </div>
 <p-sidebar [(visible)]="sidebarVisable" [baseZIndex]="10000" [style]="{margin:'1vh',height:'98vh',padding:'2vmin'}">
@@ -264,3 +384,4 @@
   <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
   Entwickelt von Justus Purat
 </p-sidebar>
+<p-toast [style]="{marginTop: '80px'}"></p-toast>

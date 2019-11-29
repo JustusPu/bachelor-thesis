@@ -84,10 +84,10 @@
 }
 .step {
   width: 100%;
-  overflow: auto;
+  overflow-y: auto;
+  display: flex;
 }
 .frame {
-  height: 100%;
   padding: 10px;
 }
 // @media only screen and (orientation:landscape){
@@ -99,9 +99,16 @@
 //   #container{ display:block; }
 // }
 @media screen and (min-width: 880px) {
-  .ui-g-12 {
-    width: 50%;
+  .frame{
+    height:100%;
+    overflow-y: auto;
   }
+  .step{
+    overflow-y: hidden;
+  }
+  // .ui-fieldset{
+  //   max-width: 45vw;
+  // }
 }
 .gradUnit::after {
   content: "°";
@@ -150,7 +157,6 @@
   font-style: normal;
   font-weight: 400;
   font-size: 3vmin !important;
-  min-width: 45vw;
 }
 .ui-fieldset-content {
   display: flex;
@@ -178,4 +184,7 @@ li:focus{
     margin-right: 0;
     margin-bottom: 0;
   }
+}
+input{
+  font-size:2vmin;
 }

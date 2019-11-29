@@ -1,10 +1,8 @@
-export class knoten {
+export class Anchor {
     name: string;
     neighbours: any[];
     pos: any;
-    hasNeighbour(node) {
-        return false;
-    }
+    
     constructor(name, pos) {
         this.name = name
         this.neighbours = [];

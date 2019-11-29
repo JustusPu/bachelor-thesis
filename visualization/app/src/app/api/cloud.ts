@@ -1,17 +1,19 @@
-import { knoten } from "./knoten";
+import { Anchor } from "./anchor";
 import { functions } from './functions';
+import { MessageService } from 'primeng/components/common/messageservice';
 
-export class wolke {
-    anchors: knoten[];
-    determinedAnchors: knoten[];
-    constructor() {
+export class Cloud {
+    anchors: Anchor[];
+    determinedAnchors: Anchor[];
+
+    constructor(private messageService: MessageService) {
         this.anchors = [];
         this.determinedAnchors = [];
     }
 
     addNode(name, pos) {
         if (this.getNodeByName(name) == null) {
-            let node = new knoten(name, pos);
+            let node = new Anchor(name, pos);
             this.anchors.push(node);
             return node;
         }
@@ -44,7 +46,7 @@ export class wolke {
         for (let i = 0; i < this.anchors.length; i++) {
             result += this.anchors[i].getNeighboursString();
 			/*for(j=0;j<this.anchors.length;j++){
-        if(i!=j){
+                if(i!=j){
 					let distance = Math.sqrt(Math.pow(this.anchors[i].pos.x - this.anchors[j].pos.x, 2) + Math.pow(this.anchors[i].pos.y - this.anchors[j].pos.y, 2) + Math.pow(this.anchors[i].pos.z - this.anchors[j].pos.z, 2));
 					if(distance<range+getRandom(-deviation,deviation)){
 						result+=this.anchors[i].name+";"+this.anchors[j].name+";"+distance+"\n";
@@ -61,7 +63,7 @@ export class wolke {
 
     randomAnchors(count, min, max) {
         for (let i = 0; i < count; i++) {
-            let node = new knoten(i, { "x": functions.getRandom(min, max), "y": functions.getRandom(min, max), "z": functions.getRandom(min, max) });
+            let node = new Anchor(i, { "x": functions.getRandom(min, max), "y": functions.getRandom(min, max), "z": functions.getRandom(min, max) });
             this.anchors.push(node);
         }
     }
@@ -108,8 +110,12 @@ export class wolke {
         }
     }
 
-    calcPositions() {
+    async calcPositions() {
+        console.log("Berechnung gestartet");
         let clouds = this.getCompletedClouds();
+        console.log("Vollständige Ankerwolken bestimmt");
+        // this.messageService.add({sticky:true,severity:'success', summary: 'Vollständige Ankerwolken bestimmt', detail:'Für mehr Details bitte die Konsole öffnen'});
+        // console.log(clouds);
         for (let i = 0; i < clouds.length; i++) {
             if (this.setGroundAnchors(clouds[0])) { break; }
             clouds.push(clouds.shift());
@@ -131,20 +137,23 @@ export class wolke {
             let undefinedAnchors = this.anchors.filter(function (elem) { return elem.pos == null });
             if (undefinedAnchors.length > 0) {
                 console.log("Es konnten NICHT alle Anker eindeutig bestimmt werden!");
-                //console.log("Folgende Anker konnten nicht bestimmt werden:");
-                //undefinedAnchors.forEach(function(elem){console.log(elem.name)});
+                this.messageService.add({sticky:true,severity:'info', summary: 'Nicht alle Anker konnten bestimmt werden!', detail:'Für mehr Details bitte die Konsole öffnen'});
+                console.log("Gegebenenfalls müssen mehr Anker im Gebäude plaziert werden.");
+                // console.log("Folgende Anker konnten nicht bestimmt werden:");
+                // undefinedAnchors.forEach(function(elem){console.log(elem.name)});
             }
             else {
                 console.log("Alle Anker konnten bestimmt werden!");
+                this.messageService.add({sticky:true,severity:'success', summary: 'Alle Anker bestimmt', detail:''});
             }
             //console.log("Folgende Ankerpositionen konnten bestimmt werden:");
             //this.determinedAnchors.forEach(function(elem){console.log(elem.name+":{x:"+elem.pos.x+",y:"+elem.pos.y+",z:"+elem.pos.z+"}")});
             //this.determinedAnchors.forEach(function(elem){pos=roundV(elem.pos,2);console.log(elem.name+":"+pos.x+",y:"+pos.y+",z:"+pos.z+"}")});
         }
         else {
-            console.log("Keine Ankerkombination steht sozu einander, dass eine eindeutige Positionsbestimmung möglich ist.")
+            console.log("Keine Ankerkombination steht sozu einander, dass eine eindeutige Positionsbestimmung möglich ist.");
+            this.messageService.add({sticky:true,severity:'error', summary: 'Positionsbestimmung nicht möglich', detail:'Keine Ankerkombination steht sozu einander, dass eine eindeutige Positionsbestimmung möglich ist.'});
         }
-
         for (let i = 0; i < this.determinedAnchors.length; i++) {
             for (let j = 0; j < this.determinedAnchors.length; j++) {
                 if (i != j) {
@@ -155,10 +164,26 @@ export class wolke {
     }
 
     adjustCOS(fixednodes) {
+        this.messageService.add({sticky:true,severity:'info', summary: 'Ausrichtung des Koordinatensystem gestartet', detail:'Die bestimmten Anker werden nun anhand von fixen Ankern im Erdkoordinatensystem ausgerichtet'});
+        fixednodes.forEach(a => {
+            if (a.pos && a.pos.x && a.pos.y && a.pos.z) {
+                fixednodes.forEach(b => {
+                    if (b.pos && b.pos.x && b.pos.y && b.pos.z) {
+                        a.addNeighbour(b, Math.sqrt(Math.pow(a.pos.x - b.pos.x, 2) + Math.pow(a.pos.y - b.pos.y, 2) + Math.pow(a.pos.z - b.pos.z, 2)));
+                    }
+                });
+            }
+        });
+        // console.log(fixednodes);
+        let adjustAnchor = this.getFourIndependentAnchors(fixednodes, false);
         let determinedFixedNodes = [];
-        for (let i = 0; i < fixednodes.length; i++) {
-            determinedFixedNodes.push([fixednodes[i].pos, this.getAbsolutePosition(fixednodes[i])])
-        };
+        adjustAnchor.forEach(elem => {
+            let pos = this.getAbsolutePosition(elem);
+            if (pos) {
+                determinedFixedNodes.push([elem.pos, pos]);
+            }
+        });
+        // console.log(determinedFixedNodes);
         if (determinedFixedNodes.length > 3) {
             let v = [[determinedFixedNodes[0][0].x - determinedFixedNodes[1][0].x, determinedFixedNodes[0][0].y - determinedFixedNodes[1][0].y, determinedFixedNodes[0][0].z - determinedFixedNodes[1][0].z],
             [determinedFixedNodes[0][0].x - determinedFixedNodes[2][0].x, determinedFixedNodes[0][0].y - determinedFixedNodes[2][0].y, determinedFixedNodes[0][0].z - determinedFixedNodes[2][0].z],
@@ -166,6 +191,7 @@ export class wolke {
             let w = [[determinedFixedNodes[0][1].x - determinedFixedNodes[1][1].x, determinedFixedNodes[0][1].y - determinedFixedNodes[1][1].y, determinedFixedNodes[0][1].z - determinedFixedNodes[1][1].z],
             [determinedFixedNodes[0][1].x - determinedFixedNodes[2][1].x, determinedFixedNodes[0][1].y - determinedFixedNodes[2][1].y, determinedFixedNodes[0][1].z - determinedFixedNodes[2][1].z],
             [determinedFixedNodes[0][1].x - determinedFixedNodes[3][1].x, determinedFixedNodes[0][1].y - determinedFixedNodes[3][1].y, determinedFixedNodes[0][1].z - determinedFixedNodes[3][1].z]];
+            // console.log(w);
             let u = functions.multMatrix(v, functions.matrix_invert(w));
             let r = functions.vec2Pos(functions.multMatrix(u, functions.pos2Vec(determinedFixedNodes[0][1])));
             let x = determinedFixedNodes[0][0].x - r.x;
@@ -174,15 +200,21 @@ export class wolke {
             this.determinedAnchors.forEach(function (elem) {
                 elem.pos = functions.vec2Pos(functions.addVector([x, y, z], functions.multMatrix(u, functions.pos2Vec(elem.pos))));
             });
+            this.messageService.add({sticky:true,severity:'success', summary: 'Ausrichtung des Koordinatensystem erfolgreich', detail:''});
+            return true;
         }
         else {
             console.log("Es konnten nicht genug RTK-Anker bestimmt werden!");
-            console.log("Folgende Anker konnten nicht bestimmt werden:");
-            fixednodes.filter(function (elem) { return this.getNodeByName(elem.name) == null; }).forEach(function (elem) { console.log(elem.name) });
+            this.messageService.add({sticky:true,severity:'error', summary: 'Ausrichtung des Koordinatensystem fehlgeschlagen', detail:'Für mehr Details bitte die Konsole öffnen'});
+            console.log("Entweder stehen keine vier fixen Anker linear unabhängig zu einander oder die fixen Anker haben keine ausreichende Bestimmung zu den Gebäude-Ankern. Es kann helfen mehr fixe Ankerpunkte einzufügen.")
+            // console.log("Folgende Anker konnten nicht bestimmt werden:");
+            // fixednodes.filter(function (elem) { return this.getNodeByName(elem.name) == null; }).forEach(function (elem) { console.log(elem.name) });
         }
+        return false;
     }
 
-    getTagPosition(node, accuracy) {
+    getTagPosition(node, accuracy?) {
+        return this.getAbsolutePosition(node);
         return functions.vec2Pos(functions.roundV(functions.pos2Vec(this.getAbsolutePosition(node)), accuracy));
     }
 
@@ -225,6 +257,7 @@ export class wolke {
         let m2 = functions.vec2Pos(functions.addVector(functions.pos2Vec(cos[0].pos), functions.multMatrix([x, y, mz], [x3, y3, z3])))
         let r1 = Math.sqrt(Math.pow(cos[3].pos.x - m1.x, 2) + Math.pow(cos[3].pos.y - m1.y, 2) + Math.pow(cos[3].pos.z - m1.z, 2));
         let r2 = Math.sqrt(Math.pow(cos[3].pos.x - m2.x, 2) + Math.pow(cos[3].pos.y - m2.y, 2) + Math.pow(cos[3].pos.z - m2.z, 2));
+        // console.log(Math.abs(d[3] - r1),Math.abs(d[3] - r2))
         if (Math.abs(d[3] - r1) < Math.abs(d[3] - r2)) {
             return m1
         }

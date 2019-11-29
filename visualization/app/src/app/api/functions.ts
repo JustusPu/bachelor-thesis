@@ -1,5 +1,16 @@
 export class functions {
-    static test(origin, pos) {    //Umrechnung der Pos von dem "senkrecht auf der Erdoberfläche stehenden"-COS ins ECEF-COS
+    static ecef2local(origin, pos) {    //Umrechnung der Pos von dem "senkrecht auf der Erdoberfläche stehenden"-COS ins ECEF-COS
+        let x = [-origin.x, -origin.y, (Math.pow(origin.x, 2) + Math.pow(origin.y, 2)) / origin.z];
+        let y =
+            [
+                ((Math.pow(origin.x, 2) + Math.pow(origin.y, 2) + Math.pow(origin.z, 2)) * -origin.y) / origin.z,
+                ((Math.pow(origin.x, 2) + Math.pow(origin.y, 2) + Math.pow(origin.z, 2)) * origin.x) / origin.z,
+                0
+            ];
+        let z = [origin.x, origin.y, origin.z];
+        return this.vec2Pos(this.multMatrix(this.matrix_invert([this.unitV(x), this.unitV(y), this.unitV(z)]), this.addVector(this.pos2Vec(pos),[-origin.x,-origin.y,-origin.z])));
+    }
+    static local2ecef(origin, pos) {    //Umrechnung der Pos von dem "senkrecht auf der Erdoberfläche stehenden"-COS ins ECEF-COS
         let x = [-origin.x, -origin.y, (Math.pow(origin.x, 2) + Math.pow(origin.y, 2)) / origin.z];
         let y =
             [
@@ -12,11 +23,11 @@ export class functions {
     }
 
     static ecef2altlatlon(pos) {
+        let a = 6378137;		//Äquatrorradius nach WGS84
+        let b = 6356752.314;	//Polradius nach WGS84
         let x = pos.x;
         let y = pos.y;
         let z = pos.z;
-        let a = 6378137;		//Äquatrorradius nach WGS84
-        let b = 6356752.314;	//Polradius nach WGS84
         let c = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
         let d = Math.atan2(a * z, b * c);
         let lat = Math.atan2((z + (Math.pow(a, 2) / Math.pow(b, 2) - 1) * b * Math.pow(Math.sin(d), 3)),
@@ -30,11 +41,11 @@ export class functions {
     }
 
     static altlatlon2ecef(res) {
+        let a = 6378137.0 		//Äquatrorradius nach WGS84
+        let b = 6356752.314		//Polradius nach WGS84
         let lat = res.lat * (Math.PI / 180);
         let lon = res.lon * (Math.PI / 180);
         let alt = res.alt;
-        let a = 6378137.0 		//Äquatrorradius nach WGS84
-        let b = 6356752.314		//Polradius nach WGS84
         //let n = a / Math.sqrt(1-(1-Math.pow(b,2)/Math.pow(a,2))*Math.pow(Math.sin(lat),2))
         let n = Math.pow(a, 2) / Math.sqrt(Math.pow(a, 2) * Math.pow(Math.cos(lat), 2) +
             Math.pow(b, 2) * Math.pow(Math.sin(lat), 2));
@@ -45,8 +56,7 @@ export class functions {
     }
 
     static getRandom(min, max) {
-
-        return Math.floor(Math.random() * (max - min)) + min;
+        return Math.random() * (max - min) + min;
     }
 
     static crossP(vecA, vecB) {

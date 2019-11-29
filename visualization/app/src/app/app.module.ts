@@ -17,6 +17,8 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { ListboxModule } from 'primeng/listbox';
 import { FieldsetModule } from 'primeng/fieldset';
 import { CheckboxModule } from 'primeng/checkbox';
+import { ToastModule } from 'primeng/toast';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -35,7 +37,8 @@ import { CheckboxModule } from 'primeng/checkbox';
     FileUploadModule,
     ListboxModule,
     FieldsetModule,
-    CheckboxModule
+    CheckboxModule,
+    ToastModule
   ],
   providers: [],
   bootstrap: [AppComponent]
