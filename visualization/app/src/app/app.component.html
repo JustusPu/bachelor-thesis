@@ -4,11 +4,11 @@
       <i class="fas fa-bars"></i>
     </button>
     <span class="title">{{step==4?'Ortung':step==3?'Algorithmus':'Setup'}}</span>
-    <button title="Load" class="next-button" *ngIf="step==1" (click)="fileDialog.click()">Laden</button>
+    <button title="Load" class="next-button" *ngIf="step==1" (click)="loadSetupDialog.click()">Laden</button>
     <button title="Save" class="next-button" *ngIf="step==2" (click)="saveSetup()">Speichern</button>
     <button title="Platzhalter" class="next-button" *ngIf="step>2" style="visibility: hidden;"
       (click)="saveSetup()">Speichern</button>
-    <input type="file" #fileDialog style="display:none;" accept=".txt" (change)="loadSetup($event.target)">
+    <input type="file" #loadSetupDialog style="display:none;" accept=".txt" (change)="loadSetup($event.target)">
   </div>
   <!-- <div id="turn" class="content">
     Please rotate your device!
@@ -18,27 +18,36 @@
       <div class="ui-lg-6 ui-g-12 frame">
         <p class="headline">Umgebung:</p>
         <div class="ui-g ui-fluid">
-          <div class="ui-g-4 ui-xl-2">
+          <div class="ui-g-3 ui-xl-2">
             <div class="ui-inputgroup gradUnit">
               <span class="ui-inputgroup-addon fa-stack">
                 <i class="fa fa-globe fa-stack-1x"></i>
                 <i class="fa fa-arrows-alt-v fa-stack-1x fa-inverse"></i>
               </span>
               <input type="text" pInputText placeholder="±52.450302" [(ngModel)]="setupCOS.latVal" maxlength="10"
-                size="8" pTooltip="Latitude des Mittelpunktes des Gebäudes" tooltipPosition="top">
+                size="7" pTooltip="Latitude des Mittelpunktes des Gebäudes" tooltipPosition="top">
             </div>
           </div>
-          <div class="ui-g-4 ui-xl-2">
+          <div class="ui-g-3 ui-xl-2">
             <div class="ui-inputgroup gradUnit">
               <span class="ui-inputgroup-addon fa-stack">
                 <i class="fa fa-globe fa-stack-1x"></i>
                 <i class="fa fa-arrows-alt-h fa-stack-1x fa-inverse"></i>
               </span>
               <input type="text" pInputText placeholder="±013.293496" [(ngModel)]="setupCOS.lonVal" maxlength="11"
-                size="8" pTooltip="Longitude des Mittelpunktes des Gebäudes" tooltipPosition="top">
+                size="7" pTooltip="Longitude des Mittelpunktes des Gebäudes" tooltipPosition="top">
             </div>
           </div>
-          <div class="ui-g-4 ui-xl-1">
+          <div class="ui-g-3 ui-xl-2">
+            <div class="ui-inputgroup meterUnit">
+              <span class="ui-inputgroup-addon fa-stack">
+                <i class="fa fa-arrow-up fa-stack-1x"></i>
+              </span>
+              <input type="text" pInputText placeholder="57" [(ngModel)]="setupCOS.altVal" maxlength="5" size="7"
+                pTooltip="Altitude des Mittelpunktes des Gebäudes" tooltipPosition="top">
+            </div>
+          </div>
+          <div class="ui-g-3 ui-xl-1">
             <div class="ui-inputgroup timesUnit">
               <span class="ui-inputgroup-addon fa-stack">
                 <i class="fas fa-search-location fa-stack-1x"></i>
@@ -47,25 +56,37 @@
                 pTooltip="Zoomfaktor um den Mittelpunktes des Gebäudes" tooltipPosition="top">
             </div>
           </div>
-          <div class="ui-g-4 ui-xl-1">
+          <div class="ui-g-3 ui-xl-1">
             <div class="ui-inputgroup meterUnit">
               <span class="ui-inputgroup-addon fa-stack">
-                <i class="fas fa-ruler-vertical fa-stack-1x"></i>
+                <i class="fas fa-ruler-horizontal fa-stack-1x" data-fa-transform="rotate-45"></i>
+                <!-- <strong class="fa-stack-1x fa-stack-text ">L</strong> -->
               </span>
-              <input type="text" pInputText placeholder="78.04" [(ngModel)]="setupCOS.widthVal" maxlength="8" size="8"
-                pTooltip="Breite des Gebäudes" tooltipPosition="top">
-            </div>
-          </div>
-          <div class="ui-g-4 ui-xl-1">
-            <div class="ui-inputgroup meterUnit">
-              <span class="ui-inputgroup-addon fa-stack">
-                <i class="fas fa-ruler-horizontal fa-stack-1x"></i>
-              </span>
-              <input type="text" pInputText placeholder="37.12" [(ngModel)]="setupCOS.lengthVal" maxlength="8" size="8"
+              <input type="text" pInputText placeholder="37.12" [(ngModel)]="setupCOS.lengthVal" maxlength="8" size="7"
                 pTooltip="Länge des Gebäudes" tooltipPosition="top">
             </div>
           </div>
-          <div class="ui-g-4 ui-xl-1">
+          <div class="ui-g-3 ui-xl-1">
+            <div class="ui-inputgroup meterUnit">
+              <span class="ui-inputgroup-addon fa-stack">
+                <i class="fas fa-ruler-horizontal fa-stack-1x"></i>
+                <!-- <strong class="fa-stack-1x fa-stack-text">B</strong> -->
+              </span>
+              <input type="text" pInputText placeholder="78.04" [(ngModel)]="setupCOS.widthVal" maxlength="8" size="7"
+                pTooltip="Breite des Gebäudes" tooltipPosition="top">
+            </div>
+          </div>
+          <div class="ui-g-3 ui-xl-1">
+            <div class="ui-inputgroup meterUnit">
+              <span class="ui-inputgroup-addon fa-stack">
+                <i class="fas fa-ruler-vertical fa-stack-1x"></i>
+                <!-- <strong class="fa-stack-1x fa-stack-text">H</strong> -->
+              </span>
+              <input type="text" pInputText placeholder="6" [(ngModel)]="setupCOS.heightVal" maxlength="8" size="7"
+                pTooltip="Höhe des Gebäudes über Boden" tooltipPosition="top">
+            </div>
+          </div>
+          <div class="ui-g-3 ui-xl-1">
             <div class="ui-inputgroup gradUnit">
               <span class="ui-inputgroup-addon fa-stack">
                 <i class="fas fa-compass fa-stack-1x"></i>
@@ -97,7 +118,7 @@
             </div>
           </ng-template>
           <ng-template pTemplate="content">
-            <div style="display:flex;justify-content: space-between;padding:0.5em;"
+            <div style="display:flex;justify-content: space-between;align-items: center;padding:0.5em;"
               *ngFor="let outline of this.setupCOS.outlines;let i = index">
               <div style="flex:1 0 0;">
                 <!-- <span>{{outline.url|slice:0:25}}...{{outline.url|slice:-25}}</span> -->
@@ -108,6 +129,11 @@
                 <input type="text" pInputText placeholder="0.00" maxlength="5" style="width: 30px;text-align: right;"
                   [(ngModel)]="outline.height" (ngModelChange)="updateLayer(i,$event)"
                   pTooltip="Höhe des Grundrisses über dem Erdboden" tooltipPosition="top">m
+              </div>
+              <div style="padding:0 10px;">
+                <!-- <p-toggleButton onLabel="" offLabel="" onIcon="fas fa-eye" offIcon="fas fa-eye-slash" [(ngModel)]="outline.visible"></p-toggleButton> -->
+                <p-toggleButton onLabel="" offLabel="" [onIcon]="'pi pi-eye'" [offIcon]="'pi pi-eye-slash'"
+                  [(ngModel)]="outline.visible" (ngModelChange)="setupCOS.setOutlineVisibility(i)"></p-toggleButton>
               </div>
               <div>
                 <button type="button" icon="fas fa-times" pButton (click)="removeLayer(i)"></button>
@@ -131,7 +157,7 @@
           </ng-template>
         </p-fileUpload>
       </div>
-      <div class="ui-lg-6 ui-g-12 frame" style="overflow: hidden;">
+      <div class="ui-lg-6 ui-g-12 frame" style="overflow: hidden;height:100%">
         <app-cos #setupCOS canvasWidth="100%" canvasHeight="100%"></app-cos>
       </div>
     </div>
@@ -209,7 +235,7 @@
                   </div>
                 </ng-template>
               </p-listbox>
-              <div style="display:flex;align-items: flex-end;">
+              <div style="display:grid;align-items: center;">
                 <button type="button" class="add-button" (click)="addAnchor()">
                   <span class="fas fa-plus"></span>
                 </button>
@@ -282,10 +308,10 @@
         <div style="display:flex;justify-content: space-around;flex-wrap: wrap;">
           <div style="flex: 1 0 0;">
             <p-fieldset legend="Zeitpunkt">
-              <p-listbox [options]="tags" [(ngModel)]="selectedTag" optionLabel="time"
+              <p-listbox [options]="tags" [(ngModel)]="selectedTag" optionLabel="time" (onChange)="selectedTagChange()"
                 (onChange)="selectedTagNeighbour=null">
                 <ng-template let-time let-i="index" pTemplate="item">
-                  <div style="padding:0 0.857em;">
+                  <div style="padding:0 0.857em;" #row [attr.id]="index">
                     <!-- [style.background]="anchors[i].lla.lat&&anchors[i].lla.lon&&anchors[i].lla.alt?'rgba(100,205,30,0.8)':'unset'"> -->
                     <p style="height:4vmin;font-size: 2vmin;vertical-align: middle;display: table-cell;">
                       t{{i}} ({{tags[i].time|date:'HH:mm:ss'}})
@@ -293,13 +319,25 @@
                   </div>
                 </ng-template>
               </p-listbox>
-              <div style="display:flex;align-items: flex-end;">
-                <button type="button" class="add-button" (click)="addTagTime()">
-                  <span class="fas fa-plus"></span>
-                </button>
-                <button type="button" class="add-button" (click)="removeTagTime()">
-                  <span class="fas fa-minus"></span>
-                </button>
+              <div style="display:grid;">
+                <div style="display:flex;align-items: flex-end;">
+                  <input type="file" #loadTraceDialog style="display:none;" accept=".txt"
+                    (change)="loadTrace($event.target)">
+                  <button type="button" class="add-button" (click)="loadTraceDialog.click()">
+                    <span class="far fa-folder-open"></span>
+                  </button>
+                  <button type="button" class="add-button" (click)="saveTrace()">
+                    <span class="far fa-save"></span>
+                  </button>
+                </div>
+                <div style="display:grid;align-items: flex-end;">
+                  <button type="button" class="add-button" (click)="addTagTime()">
+                    <span class="fas fa-plus"></span>
+                  </button>
+                  <button type="button" class="add-button" (click)="removeTagTime()">
+                    <span class="fas fa-minus"></span>
+                  </button>
+                </div>
               </div>
             </p-fieldset>
           </div>
@@ -336,34 +374,55 @@
           </div>
         </div>
       </div>
-      <div class="ui-lg-1 ui-g-12 frame" style="display:table;">
+      <div class="ui-lg-1 ui-g-12 frame">
         <div
-          style="color: #ffffff !important; font-style: normal; font-weight: 400;font-family: 'Open Sans', 'Helvetica Neue', sans-serif;font-size:3vmin; display: table-cell; vertical-align: middle;">
-          <button title="Play" class="next-button" (click)="playTag()">
-            <span class="fas fa-play"></span>
-          </button>
-          <button title="Pause" class="next-button" style="float: right;" (click)="pauseTag()">
-            <span class="fas fa-pause"></span>
-          </button><br><br>
-          <button title="Previous" class="next-button" (click)="prevTag()">
-            <span class="fas fa-step-backward"></span>
-          </button>
-          <button title="Next" class="next-button" style="float: right;" (click)="nextTag()">
-            <span class="fas fa-step-forward"></span>
-          </button><br><br>
-          <button title="First" class="next-button" (click)="firstTag()">
-            <span class="fas fa-fast-backward"></span>
-          </button>
-          <button title="Last" class="next-button" style="float: right;" (click)="lastTag()">
-            <span class="fas fa-fast-forward"></span>
-          </button>
-          <p-checkbox name="single" [(ngModel)]="showTrack" binary="true" label="Spur?"></p-checkbox><br>
-          Lat:<br><span style="font-size:2vmin;">{{currentlla?(currentlla.lat|number:'1.6-6'):''}}</span><br>
-          Lon:<br><span style="font-size:2vmin;">{{currentlla?(currentlla.lon|number:'1.6-6'):''}}</span><br>
-          Alt:<br><span style="font-size:2vmin;">{{currentlla?(currentlla.alt|number:'1.6-6'):''}}</span><br>
+          style="color: #ffffff !important; font-style: normal; font-weight: 400;font-family: 'Open Sans', 'Helvetica Neue', sans-serif;font-size:3vmin; display: flex; justify-content: space-around; flex-wrap: wrap; width: 100%; ">
+          <div style="flex:1 0 auto;text-align: center;">
+            <button title="Play" class="next-button" (click)="playTag()">
+              <span class="fas fa-play"></span>
+            </button>
+            <button title="Pause" class="next-button" (click)="pauseTag()">
+              <span class="fas fa-pause"></span>
+            </button>
+          </div>
+          <div style="flex:1 0 auto;text-align: center;">
+            <button title="Previous" class="next-button" (click)="prevTag()">
+              <span class="fas fa-step-backward"></span>
+            </button>
+            <button title="Next" class="next-button" (click)="nextTag()">
+              <span class="fas fa-step-forward"></span>
+            </button>
+          </div>
+          <div style="flex:1 0 auto;text-align: center;">
+            <button title="First" class="next-button" (click)="firstTag()">
+              <span class="fas fa-fast-backward"></span>
+            </button>
+            <button title="Last" class="next-button" (click)="lastTag()">
+              <span class="fas fa-fast-forward"></span>
+            </button>
+          </div>
+          <div style="flex:1 0 auto;">
+            <p-checkbox name="single" [(ngModel)]="showTrace" binary="true" label="Spur?"></p-checkbox>
+          </div>
+          <div style="flex:1 0 auto;">
+            Lat:<br><span
+              style="font-size:2vmin;">{{(currentlla&&currentlla.lat)?(currentlla.lat|number:'1.6-6'):'Unbestimmt'}}</span>
+          </div>
+          <div style="flex:1 0 auto;">
+            Lon:<br><span
+              style="font-size:2vmin;">{{(currentlla&&currentlla.lon)?(currentlla.lon|number:'1.6-6'):'Unbestimmt'}}</span>
+          </div>
+          <div style="flex:1 0 auto;">
+            Alt:<br><span
+              style="font-size:2vmin;">{{(currentlla&&currentlla.alt)?(currentlla.alt|number:'1.6-6'):'Unbestimmt'}}</span>
+          </div>
+          <div style="flex:1 0 auto;">
+            <a *ngIf="currentlla && currentlla.lat && currentlla.lon && currentlla.alt" target="popup"
+              [href]="'https://www.google.com/maps/search/'+currentlla.lat+','+currentlla.lon">Maps öffnen </a>
+          </div>
         </div>
       </div>
-      <div class=" ui-lg-5 ui-g-12 frame" style="overflow: hidden;">
+      <div class=" ui-lg-5 ui-g-12 frame" style="overflow: hidden;height:100%">
         <app-cos #tagCOS canvasWidth="100%" canvasHeight="100%"></app-cos>
       </div>
     </div>

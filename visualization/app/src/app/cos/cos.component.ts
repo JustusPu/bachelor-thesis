@@ -19,16 +19,17 @@ export class CosComponent implements OnInit, AfterViewInit {
   rotation: number = 34;
   width: number = 7804;
   length: number = 3712;
+  height: number = 600;
   outlines =
     // [];
     // [{ url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/untergeschoss.jpg', height: -3 },
     // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/erdgeschoss.jpg', height: 0 },
     // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/obergeschoss.jpg', height: 3 },
     // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/dach.jpg', height: 6 }];
-    [{ url: 'assets/img/untergeschoss.jpg', height: -3 },
-    { url: 'assets/img/erdgeschoss.jpg', height: 0 },
-    { url: 'assets/img/obergeschoss.jpg', height: 3 },
-    { url: 'assets/img/dach.jpg', height: 6 }];
+    [{ url: 'assets/img/untergeschoss.jpg', height: -3, visible: true },
+    { url: 'assets/img/erdgeschoss.jpg', height: 0, visible: true },
+    { url: 'assets/img/obergeschoss.jpg', height: 3, visible: true },
+    { url: 'assets/img/dach.jpg', height: 6, visible: true }];
 
   pixelResolution = 512
   mapwidth = Math.floor(15654303.392 * ((Math.cos(this.lat * Math.PI / 180)) / Math.pow(2, this.zoom)) * this.pixelResolution);
@@ -54,8 +55,8 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.addMap();
     this.addWall();
     this.addLayers();
-    this.addTag();
-    this.moveTag(0, -500, 0);
+    // this.addTag();
+    // this.moveTag(0, 500, 0);
   }
   ngAfterViewInit() {
     this.canvas.nativeElement.width = screen.width;//this.canvasWidth;//
@@ -124,6 +125,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.camera.position.set(0, this.mapwidth / 2, 0);
     this.scene.remove(this.map);
     this.addMap();
+    this.sortedLayers.forEach(elem => { elem.rotation.z = this.rotation * Math.PI / 180; });
   }
   addWall() {
     let wall = new THREE.MeshBasicMaterial({ color: 0xc8c8c8, side: THREE.DoubleSide });
@@ -134,6 +136,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.wall = new THREE.Mesh(geometry, materials);
     this.wall.rotation.y = (this.rotation) * Math.PI / 180 + (Math.PI / 2);
     this.scene.add(this.wall);
+    this.refreshWall();
   }
   updateWall() {
     this.scene.remove(this.wall);
@@ -148,6 +151,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.outlines.forEach((elem) => {
       this.addLayer(elem.url, elem.height);
     });
+    this.refreshLayer();
   }
   clearLayers() {
     while (this.layers.length > 0) {
@@ -168,8 +172,8 @@ export class CosComponent implements OnInit, AfterViewInit {
     layer.rotation.z = this.rotation * Math.PI / 180;
     layer.position.y = Math.floor(height * 100);
     this.layers.push(layer);
-    if (!this.tag || this.tag && this.layers[this.layers.length - 1].position.y <= this.tag.position.y) {
-      this.scene.add(this.layers[this.layers.length - 1]);
+    if (this.tag && this.layers[this.layers.length - 1].position.y <= this.tag.position.y) {
+      this.scene.add(layer);
     }
     if (this.sortedLayers.length == 0 || layer.position.y >= this.sortedLayers[this.sortedLayers.length - 1].position.y) {
       this.sortedLayers.push(layer);
@@ -228,6 +232,22 @@ export class CosComponent implements OnInit, AfterViewInit {
         this.refreshWall();
       }
     }
+    else {
+      this.layers.forEach(elem => {
+        this.scene.remove(elem);
+      });
+      this.layers.forEach((elem, i) => {
+        this.setOutlineVisibility(i)
+      });
+    }
+  }
+  setOutlineVisibility(index) {
+    if (this.outlines[index].visible) {
+      this.scene.add(this.layers[index]);
+    }
+    else {
+      this.scene.remove(this.layers[index]);
+    }
   }
   refreshWall() {
     if (this.sortedLayers.length > 1) {
@@ -257,9 +277,9 @@ export class CosComponent implements OnInit, AfterViewInit {
   addNode(pos?, color?) {
     let node = new THREE.Mesh(new THREE.SphereGeometry(30, 32, 32), new THREE.MeshBasicMaterial({ color: color }))
     if (pos) {
-      node.position.x = pos.x;
-      node.position.y = pos.z;
-      node.position.z = pos.y;
+      node.position.x = pos.x * 100;
+      node.position.y = pos.z * 100;
+      node.position.z = pos.y * 100;
     }
     this.nodes.push(node);
     this.scene.add(node);
@@ -273,12 +293,14 @@ export class CosComponent implements OnInit, AfterViewInit {
   addTag() {
     this.tag = new THREE.Mesh(new THREE.SphereGeometry(30, 32, 32), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
     this.scene.add(this.tag);
+    this.moveTag(0, 0, 0);
     this.refreshLayer();
   }
   moveTag(x, y, z) {
-    this.tag.position.x += x;
+    let r = this.rotation * Math.PI / 180;
+    this.tag.position.x += Math.cos(r) * x + Math.sin(r) * z;
     this.tag.position.y += y;
-    this.tag.position.z += z;
+    this.tag.position.z += Math.cos(r) * z - Math.sin(r) * x;
     this.refreshLayer();
     // console.log(this.tag.position.x, this.tag.position.y, this.tag.position.z)
   }
@@ -289,7 +311,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.refreshLayer();
     // console.log(this.tag.position.x, this.tag.position.y, this.tag.position.z)
   }
-  onKey(event: any) { // without type info
+  onKey(event: any) {
     switch (event.keyCode) {
       case 33:
         this.camera.position.y += 30;
@@ -331,6 +353,12 @@ export class CosComponent implements OnInit, AfterViewInit {
   get lonVal() {
     return this.lon;
   }
+  set altVal(val) {
+    this.alt = val;
+  }
+  get altVal() {
+    return this.alt;
+  }
   set zoomVal(val) {
     this.zoom = val;
     this.updateMap();
@@ -353,6 +381,12 @@ export class CosComponent implements OnInit, AfterViewInit {
   }
   get widthVal() {
     return this.width / 100;
+  }
+  set heightVal(val) {
+    this.height = Math.floor(val * 100);
+  }
+  get heightVal() {
+    return this.height / 100;
   }
   set rotationVal(val) {
     this.rotation = val;

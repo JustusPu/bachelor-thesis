@@ -137,14 +137,14 @@ export class Cloud {
             let undefinedAnchors = this.anchors.filter(function (elem) { return elem.pos == null });
             if (undefinedAnchors.length > 0) {
                 console.log("Es konnten NICHT alle Anker eindeutig bestimmt werden!");
-                this.messageService.add({sticky:true,severity:'info', summary: 'Nicht alle Anker konnten bestimmt werden!', detail:'Für mehr Details bitte die Konsole öffnen'});
+                this.messageService.add({ sticky: true, severity: 'info', summary: 'Nicht alle Anker konnten bestimmt werden!', detail: 'Für mehr Details bitte die Konsole öffnen' });
                 console.log("Gegebenenfalls müssen mehr Anker im Gebäude plaziert werden.");
                 // console.log("Folgende Anker konnten nicht bestimmt werden:");
                 // undefinedAnchors.forEach(function(elem){console.log(elem.name)});
             }
             else {
                 console.log("Alle Anker konnten bestimmt werden!");
-                this.messageService.add({sticky:true,severity:'success', summary: 'Alle Anker bestimmt', detail:''});
+                this.messageService.add({ sticky: true, severity: 'success', summary: 'Alle Anker bestimmt', detail: '' });
             }
             //console.log("Folgende Ankerpositionen konnten bestimmt werden:");
             //this.determinedAnchors.forEach(function(elem){console.log(elem.name+":{x:"+elem.pos.x+",y:"+elem.pos.y+",z:"+elem.pos.z+"}")});
@@ -152,7 +152,7 @@ export class Cloud {
         }
         else {
             console.log("Keine Ankerkombination steht sozu einander, dass eine eindeutige Positionsbestimmung möglich ist.");
-            this.messageService.add({sticky:true,severity:'error', summary: 'Positionsbestimmung nicht möglich', detail:'Keine Ankerkombination steht sozu einander, dass eine eindeutige Positionsbestimmung möglich ist.'});
+            this.messageService.add({ sticky: true, severity: 'error', summary: 'Positionsbestimmung nicht möglich', detail: 'Keine Ankerkombination steht sozu einander, dass eine eindeutige Positionsbestimmung möglich ist.' });
         }
         for (let i = 0; i < this.determinedAnchors.length; i++) {
             for (let j = 0; j < this.determinedAnchors.length; j++) {
@@ -164,7 +164,7 @@ export class Cloud {
     }
 
     adjustCOS(fixednodes) {
-        this.messageService.add({sticky:true,severity:'info', summary: 'Ausrichtung des Koordinatensystem gestartet', detail:'Die bestimmten Anker werden nun anhand von fixen Ankern im Erdkoordinatensystem ausgerichtet'});
+        this.messageService.add({ sticky: true, severity: 'info', summary: 'Ausrichtung des Koordinatensystem gestartet', detail: 'Die bestimmten Anker werden nun anhand von fixen Ankern im Erdkoordinatensystem ausgerichtet' });
         fixednodes.forEach(a => {
             if (a.pos && a.pos.x && a.pos.y && a.pos.z) {
                 fixednodes.forEach(b => {
@@ -200,12 +200,12 @@ export class Cloud {
             this.determinedAnchors.forEach(function (elem) {
                 elem.pos = functions.vec2Pos(functions.addVector([x, y, z], functions.multMatrix(u, functions.pos2Vec(elem.pos))));
             });
-            this.messageService.add({sticky:true,severity:'success', summary: 'Ausrichtung des Koordinatensystem erfolgreich', detail:''});
+            this.messageService.add({ sticky: true, severity: 'success', summary: 'Ausrichtung des Koordinatensystem erfolgreich', detail: '' });
             return true;
         }
         else {
             console.log("Es konnten nicht genug RTK-Anker bestimmt werden!");
-            this.messageService.add({sticky:true,severity:'error', summary: 'Ausrichtung des Koordinatensystem fehlgeschlagen', detail:'Für mehr Details bitte die Konsole öffnen'});
+            this.messageService.add({ sticky: true, severity: 'error', summary: 'Ausrichtung des Koordinatensystem fehlgeschlagen', detail: 'Für mehr Details bitte die Konsole öffnen' });
             console.log("Entweder stehen keine vier fixen Anker linear unabhängig zu einander oder die fixen Anker haben keine ausreichende Bestimmung zu den Gebäude-Ankern. Es kann helfen mehr fixe Ankerpunkte einzufügen.")
             // console.log("Folgende Anker konnten nicht bestimmt werden:");
             // fixednodes.filter(function (elem) { return this.getNodeByName(elem.name) == null; }).forEach(function (elem) { console.log(elem.name) });

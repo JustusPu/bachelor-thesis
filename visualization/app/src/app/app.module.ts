@@ -18,7 +18,7 @@ import { ListboxModule } from 'primeng/listbox';
 import { FieldsetModule } from 'primeng/fieldset';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
-
+import { ToggleButtonModule } from 'primeng/togglebutton';
 @NgModule({
   declarations: [
     AppComponent,
@@ -38,7 +38,8 @@ import { ToastModule } from 'primeng/toast';
     ListboxModule,
     FieldsetModule,
     CheckboxModule,
-    ToastModule
+    ToastModule,
+    ToggleButtonModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -1,18 +1,19 @@
 export class functions {
     static ecef2local(origin, pos) {    //Umrechnung der Pos von dem "senkrecht auf der Erdoberfläche stehenden"-COS ins ECEF-COS
-        let x = [-origin.x, -origin.y, (Math.pow(origin.x, 2) + Math.pow(origin.y, 2)) / origin.z];
-        let y =
+        let y = [origin.x, origin.y, (-Math.pow(origin.x, 2) + Math.pow(origin.y, 2)) / origin.z];
+        let x =
             [
                 ((Math.pow(origin.x, 2) + Math.pow(origin.y, 2) + Math.pow(origin.z, 2)) * -origin.y) / origin.z,
                 ((Math.pow(origin.x, 2) + Math.pow(origin.y, 2) + Math.pow(origin.z, 2)) * origin.x) / origin.z,
                 0
             ];
         let z = [origin.x, origin.y, origin.z];
-        return this.vec2Pos(this.multMatrix(this.matrix_invert([this.unitV(x), this.unitV(y), this.unitV(z)]), this.addVector(this.pos2Vec(pos),[-origin.x,-origin.y,-origin.z])));
+        return this.vec2Pos(this.multMatrix(this.matrix_invert([this.unitV(x), this.unitV(y), this.unitV(z)]), this.addVector(this.pos2Vec(pos), [-origin.x, -origin.y, -origin.z])));
     }
     static local2ecef(origin, pos) {    //Umrechnung der Pos von dem "senkrecht auf der Erdoberfläche stehenden"-COS ins ECEF-COS
-        let x = [-origin.x, -origin.y, (Math.pow(origin.x, 2) + Math.pow(origin.y, 2)) / origin.z];
-        let y =
+
+        let y = [origin.x, origin.y, (-Math.pow(origin.x, 2) + Math.pow(origin.y, 2)) / origin.z];
+        let x =
             [
                 ((Math.pow(origin.x, 2) + Math.pow(origin.y, 2) + Math.pow(origin.z, 2)) * -origin.y) / origin.z,
                 ((Math.pow(origin.x, 2) + Math.pow(origin.y, 2) + Math.pow(origin.z, 2)) * origin.x) / origin.z,
