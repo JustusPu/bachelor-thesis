@@ -12,24 +12,24 @@ export class CosComponent implements OnInit, AfterViewInit {
   @ViewChild('cos', { static: false }) canvas: ElementRef;
   @Input() canvasWidth;
   @Input() canvasHeight;
-  lat: number = 52.455992;
-  lon: number = 13.297124;
-  alt: number = 57;
-  zoom: number = 19;
-  rotation: number = 34;
-  width: number = 7804;
-  length: number = 3712;
-  height: number = 600;
+  lat: number //= 52.455992;
+  lon: number //= 13.297124;
+  alt: number //= 57;
+  zoom: number //= 19;
+  rotation: number //= 34;
+  width: number //= 7804;
+  length: number //= 3712;
+  height: number //= 600;
   outlines =
-    // [];
-    // [{ url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/untergeschoss.jpg', height: -3 },
-    // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/erdgeschoss.jpg', height: 0 },
-    // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/obergeschoss.jpg', height: 3 },
-    // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/dach.jpg', height: 6 }];
-    [{ url: 'assets/img/untergeschoss.jpg', height: -3, visible: true },
-    { url: 'assets/img/erdgeschoss.jpg', height: 0, visible: true },
-    { url: 'assets/img/obergeschoss.jpg', height: 3, visible: true },
-    { url: 'assets/img/dach.jpg', height: 6, visible: true }];
+    [];
+  // [{ url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/untergeschoss.jpg', height: -3 },
+  // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/erdgeschoss.jpg', height: 0 },
+  // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/obergeschoss.jpg', height: 3 },
+  // { url: 'http://page.mi.fu-berlin.de/justup98/bachelor-thesis/assets/img/dach.jpg', height: 6 }];
+  // [{ url: 'assets/img/untergeschoss.jpg', height: -3 },
+  // { url: 'assets/img/erdgeschoss.jpg', height: 0 },
+  // { url: 'assets/img/obergeschoss.jpg', height: 3 }];
+  // { url: 'assets/img/dach.jpg', height: 6 }
 
   pixelResolution = 512
   mapwidth = Math.floor(15654303.392 * ((Math.cos(this.lat * Math.PI / 180)) / Math.pow(2, this.zoom)) * this.pixelResolution);
@@ -41,6 +41,7 @@ export class CosComponent implements OnInit, AfterViewInit {
   map: THREE.Mesh;
   wall: THREE.Mesh;
   tag: THREE.Mesh;
+  roof: THREE.Mesh;
 
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
@@ -52,9 +53,9 @@ export class CosComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.scene = new THREE.Scene();
     //this.addGrid();
-    this.addMap();
-    this.addWall();
-    this.addLayers();
+    // this.addMap();
+    // this.addWall();
+    // this.addLayers();
     // this.addTag();
     // this.moveTag(0, 500, 0);
   }
@@ -99,12 +100,12 @@ export class CosComponent implements OnInit, AfterViewInit {
   addMap() {
     let texture = new THREE.TextureLoader().load('https://maps.googleapis.com/maps/api/staticmap?center=' + this.lat + ',' + this.lon + '&zoom=' + this.zoom + '&size=' + this.pixelResolution + 'x' + this.pixelResolution + '&maptype=satellite&key=AIzaSyAlBReVsS3wF2aG381kNWJuKH3mA1fEGNk');
     let geometry = new THREE.PlaneGeometry(this.mapwidth, this.mapwidth);
-    let angle = (this.rotation) * Math.PI / 180 + Math.PI / 2
+    let angle = (this.rotation) * Math.PI / 180
     let localPlanes = [
-      new THREE.Plane(new THREE.Vector3(Math.sin(angle), 0, Math.cos(angle)), -this.width / 2),
-      new THREE.Plane(new THREE.Vector3(-Math.sin(angle), 0, -Math.cos(angle)), -this.width / 2),
-      new THREE.Plane(new THREE.Vector3(Math.sin(angle + Math.PI / 2), 0, Math.cos(angle + Math.PI / 2)), -this.length / 2),
-      new THREE.Plane(new THREE.Vector3(-Math.sin(angle + Math.PI / 2), 0, -Math.cos(angle + Math.PI / 2)), -this.length / 2)
+      new THREE.Plane(new THREE.Vector3(Math.sin(angle), 0, Math.cos(angle)), -this.length / 2),
+      new THREE.Plane(new THREE.Vector3(-Math.sin(angle), 0, -Math.cos(angle)), -this.length / 2),
+      new THREE.Plane(new THREE.Vector3(Math.sin(angle + Math.PI / 2), 0, Math.cos(angle + Math.PI / 2)), -this.width / 2),
+      new THREE.Plane(new THREE.Vector3(-Math.sin(angle + Math.PI / 2), 0, -Math.cos(angle + Math.PI / 2)), -this.width / 2)
     ];
     let material = new THREE.MeshBasicMaterial({
       map: texture,
@@ -117,6 +118,23 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.map.position.y = 0;
     this.map.rotation.x = -Math.PI / 2;
     this.scene.add(this.map);
+    let roofPlanes = [
+      new THREE.Plane(new THREE.Vector3(Math.sin(angle), 0, Math.cos(angle)), this.length / 2),
+      new THREE.Plane(new THREE.Vector3(-Math.sin(angle), 0, -Math.cos(angle)), this.length / 2),
+      new THREE.Plane(new THREE.Vector3(Math.sin(angle + Math.PI / 2), 0, Math.cos(angle + Math.PI / 2)), this.width / 2),
+      new THREE.Plane(new THREE.Vector3(-Math.sin(angle + Math.PI / 2), 0, -Math.cos(angle + Math.PI / 2)), this.width / 2)
+    ];
+    let roofMaterial = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+      transparent: true,
+      clippingPlanes: roofPlanes,
+      clipIntersection: false
+    })
+    this.roof = new THREE.Mesh(geometry, roofMaterial);
+    this.roof.position.y = this.height;
+    this.roof.rotation.x = -Math.PI / 2;
+    this.scene.add(this.roof);
   }
   updateMap() {
     this.mapwidth = Math.floor(15654303.392 * ((Math.cos(this.lat * Math.PI / 180)) / Math.pow(2, this.zoom)) * this.pixelResolution);
@@ -124,7 +142,10 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.controls.maxDistance = this.mapwidth;
     this.camera.position.set(0, this.mapwidth / 2, 0);
     this.scene.remove(this.map);
+    this.scene.remove(this.roof);
+    let roofVisibility = (this.roof && this.roof.visible) || true;
     this.addMap();
+    this.roof.visible = roofVisibility;
     this.sortedLayers.forEach(elem => { elem.rotation.z = this.rotation * Math.PI / 180; });
   }
   addWall() {
@@ -172,9 +193,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     layer.rotation.z = this.rotation * Math.PI / 180;
     layer.position.y = Math.floor(height * 100);
     this.layers.push(layer);
-    if (this.tag && this.layers[this.layers.length - 1].position.y <= this.tag.position.y) {
-      this.scene.add(layer);
-    }
+    this.scene.add(layer);
     if (this.sortedLayers.length == 0 || layer.position.y >= this.sortedLayers[this.sortedLayers.length - 1].position.y) {
       this.sortedLayers.push(layer);
       this.highestLayer = this.sortedLayers.length - 1;
@@ -190,16 +209,13 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.refreshWall();
   }
   updateLayer(outlineIndex, height) {
+    let heightVal = Math.floor(height * 100)
     if (!isNaN(height)) {
-      this.layers[outlineIndex].position.y = Math.floor(height * 100);
+      this.layers[outlineIndex].position.y = heightVal;
       this.sortedLayers.sort((a, b) => a.position.y - b.position.y);
-      if (this.tag && this.sortedLayers[this.highestLayer].position.y > this.tag.position.y) {//updatedLayer war vorher unter Tag und nun über Tag
-        this.scene.remove(this.layers[outlineIndex]);
-        this.highestLayer--;
-      }
-      else if (this.tag && this.highestLayer + 1 < this.sortedLayers.length && this.sortedLayers[this.highestLayer + 1].position.y <= this.tag.position.y) {//updatedLayer war über Tag und jetzt zwischen highestLayer und tag geschoben
-        this.highestLayer++;
-        this.scene.add(this.layers[outlineIndex]);
+      if (this.height <= heightVal) {
+        this.height = heightVal + 1;
+        this.roof.position.y = this.height;
       }
       this.refreshWall();
     }
@@ -218,59 +234,58 @@ export class CosComponent implements OnInit, AfterViewInit {
       let changed = false;
       if (this.highestLayer >= 0 && this.sortedLayers[this.highestLayer].position.y > this.tag.position.y) {
         while (this.highestLayer >= 0 && this.sortedLayers[this.highestLayer].position.y > this.tag.position.y) {
-          this.scene.remove(this.sortedLayers[this.highestLayer--]);
+          this.sortedLayers[this.highestLayer--].visible = false;
           changed = true;
         }
       }
       else {
         while (this.sortedLayers.length > this.highestLayer + 1 && this.sortedLayers[this.highestLayer + 1].position.y <= this.tag.position.y) {
-          this.scene.add(this.sortedLayers[++this.highestLayer]);
+          this.sortedLayers[++this.highestLayer].visible = true;
           changed = true;
         }
       }
-      if (changed && this.highestLayer >= 0) {
-        this.refreshWall();
-      }
+      this.roof.visible = this.roof.position.y <= this.tag.position.y
+      if (changed) { this.refreshWall(); }
     }
     else {
-      this.layers.forEach(elem => {
-        this.scene.remove(elem);
-      });
-      this.layers.forEach((elem, i) => {
-        this.setOutlineVisibility(i)
-      });
+      this.highestLayer = this.sortedLayers.indexOf(this.sortedLayers.filter(elem => { return elem.visible }).pop());
+      this.refreshWall();
     }
   }
-  setOutlineVisibility(index) {
-    if (this.outlines[index].visible) {
-      this.scene.add(this.layers[index]);
-    }
-    else {
-      this.scene.remove(this.layers[index]);
-    }
+  setRoofVisibility(val) {
+    this.roof.visible = val;
+    this.refreshWall();
   }
   refreshWall() {
-    if (this.sortedLayers.length > 1) {
-      if (this.highestLayer + 1 < this.sortedLayers.length) {
-        this.wall.scale.y = this.sortedLayers[this.highestLayer + 1].position.y - this.sortedLayers[0].position.y;
-        this.wall.position.y = this.wall.scale.y / 2 + this.sortedLayers[0].position.y - 1;
-        // console.log("A");
+    if (this.sortedLayers.length > 0 && this.highestLayer >= 0) {//Oberste Ebene anzeigen: Dach hat keine Außenmauern
+      let lowest = Math.min(this.sortedLayers[0].position.y, 0);
+      if (this.highestLayer + 1 >= this.sortedLayers.length || this.roof.visible) {
+        this.wall.scale.y = this.roof.position.y - lowest;
+        this.wall.position.y = this.wall.scale.y / 2 + lowest - 1;
       }
-      else if (this.highestLayer + 1 == this.sortedLayers.length) {//Oberste Ebene anzeigen: Dach hat keine Außenmauern
-        this.wall.scale.y = this.sortedLayers[this.highestLayer].position.y - this.sortedLayers[0].position.y;
-        this.wall.position.y = this.wall.scale.y / 2 + this.sortedLayers[0].position.y - 1;
-        // console.log("B");
+      else if (this.sortedLayers[this.highestLayer].position.y < 0) {
+        this.wall.scale.y = - lowest;
+        this.wall.position.y = this.wall.scale.y / 2 + lowest - 1;
+      }
+      else {
+        this.wall.scale.y = this.sortedLayers[this.highestLayer + 1].position.y - lowest;
+        this.wall.position.y = this.wall.scale.y / 2 + lowest - 1;
       }
     }
-    else if (this.sortedLayers.length > 0) {
-      this.wall.scale.y = Math.abs(this.sortedLayers[0].position.y);
-      this.wall.position.y = this.wall.scale.y / 2 - 1;
-      // console.log("C");
+    else if (this.sortedLayers.length > 0 && !this.roof.visible) {//Es gibt Ebenen, aber der Punkt ist unter der untersten
+      let lowest = Math.min(this.sortedLayers[0].position.y, 0);
+      this.wall.scale.y = - lowest;
+      this.wall.position.y = this.wall.scale.y / 2 + lowest - 1;
     }
     else {
-      this.wall.scale.y = 1;
-      this.wall.position.y = 0;
-      // console.log("D");
+      if (this.height > 0 && this.roof.visible) {
+        this.wall.scale.y = this.roof.position.y;
+        this.wall.position.y = this.roof.position.y / 2;
+      }
+      else {
+        this.wall.scale.y = 1;
+        this.wall.position.y = 0;
+      }
     }
   }
 
@@ -297,12 +312,14 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.refreshLayer();
   }
   moveTag(x, y, z) {
-    let r = this.rotation * Math.PI / 180;
-    this.tag.position.x += Math.cos(r) * x + Math.sin(r) * z;
-    this.tag.position.y += y;
-    this.tag.position.z += Math.cos(r) * z - Math.sin(r) * x;
-    this.refreshLayer();
-    // console.log(this.tag.position.x, this.tag.position.y, this.tag.position.z)
+    if (this.tag) {
+      let r = this.rotation * Math.PI / 180;
+      this.tag.position.x += Math.cos(r) * x + Math.sin(r) * z;
+      this.tag.position.y += y;
+      this.tag.position.z += Math.cos(r) * z - Math.sin(r) * x;
+      this.refreshLayer();
+      // console.log(this.tag.position.x, this.tag.position.y, this.tag.position.z)
+    }
   }
   setTagPosition(pos) {
     this.tag.position.x = pos.x * 100;
@@ -340,58 +357,95 @@ export class CosComponent implements OnInit, AfterViewInit {
     }
   }
   set latVal(val) {
-    this.lat = val;
-    this.updateMap();
+    if (val >= 0 || val < 0) {
+      this.lat = val;
+      if (this.lat && this.lon && this.zoom) {
+        this.updateMap();
+      }
+    }
   }
   get latVal() {
     return this.lat;
   }
   set lonVal(val) {
-    this.lon = val;
-    this.updateMap();
+    if (val >= 0 || val < 0) {
+      this.lon = val;
+      if (this.lat && this.lon && this.zoom) {
+        this.updateMap();
+      }
+    }
   }
   get lonVal() {
     return this.lon;
   }
   set altVal(val) {
-    this.alt = val;
+    if (val >= 0 || val < 0) {
+      this.alt = val;
+    }
   }
   get altVal() {
     return this.alt;
   }
   set zoomVal(val) {
-    this.zoom = val;
-    this.updateMap();
+    if (val > 0 && val < 22) {
+      this.zoom = val;
+      if (this.lat && this.lon && this.zoom) {
+        this.updateMap();
+      }
+    }
   }
   get zoomVal() {
     return this.zoom;
   }
   set lengthVal(val) {
-    this.length = Math.floor(val * 100);
-    this.updateMap();
-    this.updateWall();
+    if (val > 0) {
+      this.length = Math.abs(Math.floor(+val * 100));
+      if (this.lat && this.lon && this.alt && this.zoom && this.length && this.width && this.height && this.rotation) {
+        this.updateMap();
+        this.updateWall();
+      }
+    }
   }
   get lengthVal() {
-    return this.length / 100;
+    return this.length / 100 || '';
   }
   set widthVal(val) {
-    this.width = Math.floor(val * 100);
-    this.updateMap();
-    this.updateWall();
+    if (val > 0) {
+      this.width = Math.abs(Math.floor(+val * 100));
+      if (this.lat && this.lon && this.alt && this.zoom && this.length && this.width && this.height && this.rotation) {
+        this.updateMap();
+        this.updateWall();
+      }
+    }
   }
   get widthVal() {
-    return this.width / 100;
+    return this.width / 100 || '';
   }
   set heightVal(val) {
-    this.height = Math.floor(val * 100);
+    if (val > 0) {
+      if (this.sortedLayers.length > 0) {
+        this.height = Math.max(Math.abs(Math.floor(+val * 100)), this.sortedLayers[this.sortedLayers.length - 1].position.y + 1, 1);
+      }
+      else {
+        this.height = Math.max(Math.abs(Math.floor(+val * 100)), 1);
+      }
+      if (this.lat && this.lon && this.alt && this.zoom && this.length && this.width && this.height && this.rotation) {
+        this.updateMap();
+        this.updateWall();
+      }
+    }
   }
   get heightVal() {
-    return this.height / 100;
+    return this.height / 100 || '';
   }
   set rotationVal(val) {
-    this.rotation = val;
-    this.updateMap();
-    this.updateWall();
+    if (val >= 0) {
+      this.rotation = val % 360;
+      if (this.lat && this.lon && this.alt && this.zoom && this.length && this.width && this.height && this.rotation) {
+        this.updateMap();
+        this.updateWall();
+      }
+    }
   }
   get rotationVal() {
     return this.rotation;

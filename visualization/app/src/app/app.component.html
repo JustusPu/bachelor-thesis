@@ -97,7 +97,7 @@
           </div>
         </div>
         <p class="headline">Grundrisse:</p>
-        <p-fileUpload #fileUploader name="upload[]" url="http://bitcoins.bplaced.net/bachelor-thesis/upload.php"
+        <p-fileUpload #fileUploader name="upload[]" url="http://mybachelorthesis.bplaced.net/bachelor-thesis/upload.php"
           multiple="multiple" accept="image/*" maxFileSize="1000000" (onUpload)="onUpload($event)"
           (onError)="onError($event)" (onBeforeUpload)="onBeforeUpload($event)" chooseLabel="Bilder auswählen"
           uploadLabel="Grundrisse einfügen" cancelLabel="Auswahl entfernen">
@@ -133,12 +133,27 @@
               <div style="padding:0 10px;">
                 <!-- <p-toggleButton onLabel="" offLabel="" onIcon="fas fa-eye" offIcon="fas fa-eye-slash" [(ngModel)]="outline.visible"></p-toggleButton> -->
                 <p-toggleButton onLabel="" offLabel="" [onIcon]="'pi pi-eye'" [offIcon]="'pi pi-eye-slash'"
-                  [(ngModel)]="outline.visible" (ngModelChange)="setupCOS.setOutlineVisibility(i)"></p-toggleButton>
+                  [(ngModel)]="setupCOS.layers[i].visible" (ngModelChange)="setupCOS.refreshLayer()"></p-toggleButton>
               </div>
               <div>
                 <button type="button" icon="fas fa-times" pButton (click)="removeLayer(i)"></button>
               </div>
             </div>
+            
+            <div style="display:flex;justify-content: space-between;padding:0.5em;">
+                <div style="flex:1 0 0;">
+                  <input type="text" pInputText value="Dach" style="width: 98%;" pTooltip="Obligatorische Ebene"
+                    tooltipPosition="top" disabled>
+                </div>
+                <div style="padding:0 10px;">
+                  <input type="text" pInputText [value]="setupCOS.heightVal" style="width: 30px;text-align: right;"
+                    pTooltip="Höhe des Gebäudes über dem Erdboden" tooltipPosition="right" disabled>m
+                </div>
+                <div>
+                  <p-toggleButton onLabel="" offLabel="" [onIcon]="'pi pi-eye'" [offIcon]="'pi pi-eye-slash'"
+                    [(ngModel)]="roof.visible" (ngModelChange)="setupCOS.setRoofVisibility($event)"></p-toggleButton>
+                </div>
+              </div>
             <div style="display:flex;justify-content: space-between;padding:0.5em;">
               <div style="flex:1 0 0;">
                 <input type="text" pInputText placeholder="http://example.de/img/outline.img" style="width: 98%;"
@@ -311,7 +326,7 @@
               <p-listbox [options]="tags" [(ngModel)]="selectedTag" optionLabel="time" (onChange)="selectedTagChange()"
                 (onChange)="selectedTagNeighbour=null">
                 <ng-template let-time let-i="index" pTemplate="item">
-                  <div style="padding:0 0.857em;" #row [attr.id]="index">
+                  <div style="padding:0 0.857em;" #row>
                     <!-- [style.background]="anchors[i].lla.lat&&anchors[i].lla.lon&&anchors[i].lla.alt?'rgba(100,205,30,0.8)':'unset'"> -->
                     <p style="height:4vmin;font-size: 2vmin;vertical-align: middle;display: table-cell;">
                       t{{i}} ({{tags[i].time|date:'HH:mm:ss'}})
@@ -418,7 +433,7 @@
           </div>
           <div style="flex:1 0 auto;">
             <a *ngIf="currentlla && currentlla.lat && currentlla.lon && currentlla.alt" target="popup"
-              [href]="'https://www.google.com/maps/search/'+currentlla.lat+','+currentlla.lon">Maps öffnen </a>
+              [href]="'https://www.google.com/maps/search/'+currentlla.lat+','+currentlla.lon" style="color:#ffffff">Maps öffnen </a>
           </div>
         </div>
       </div>
@@ -428,7 +443,7 @@
     </div>
   </div>
   <div class="footer">
-    <button title="Next" class="next-button" [style.visibility]="step>1?'visible':'hidden'" (click)="prevStep()">
+    <button title="Previous" class="next-button" [style.visibility]="step>1?'visible':'hidden'" (click)="prevStep()">
       Zurück
     </button>
     <button title="Next" class="next-button" [style.visibility]="step<4?'visible':'hidden'" (click)="nextStep()">
