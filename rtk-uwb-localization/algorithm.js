@@ -477,12 +477,6 @@ function roundV(vec, n) {
 	return [Math.round(vec[0] * a / a), Math.round(vec[1] * a) / a, Math.round(vec[2] * a) / a];
 }
 
-cloud = new Cloud();
-dataSet1();
-//dataSet2();
-//dataSet3();
-//dataSet4();
-
 function dataSet1() {
 	console.log("DataSet1");
 	cloud.addNode("A", { x: 34, y: 15, z: 39 });
@@ -535,7 +529,6 @@ function dataSet1() {
 
 	//console.log(tag)
 	console.log(cloud.getTagPosition(tag, 6));
-
 }
 
 function dataSet2() {
@@ -824,53 +817,7 @@ function dataSet3() {
 	//}
 }
 
-function dataSet4() {
-	console.log("DataSet4");
-	cloud.addNode("A", null);
-	cloud.addNode("B", null);
-	cloud.addNode("C", null);
-	cloud.addNode("D", null);
-	cloud.addNode("E", null);
-	cloud.addNode("F", null);
-	cloud.addNode("G", null);
-	cloud.addDist("A", "B", 33);
-	cloud.addDist("A", "C", 47.16990566028302);
-	cloud.addDist("A", "D", 7.211102550927978);
-	cloud.addDist("A", "E", 31.400636936215164);
-	cloud.addDist("A", "G", 33.391615714128);
-	cloud.addDist("B", "A", 33);
-	cloud.addDist("B", "C", 31.874754901018456);
-	cloud.addDist("B", "D", 32.14031735997639);
-	cloud.addDist("B", "E", 69.32532004974806);
-	cloud.addDist("B", "F", 43.18564576337837);
-	cloud.addDist("B", "G", 16.673332000533065);
-	cloud.addDist("C", "A", 47.16990566028302);
-	cloud.addDist("C", "B", 31.874754901018456);
-	cloud.addDist("C", "D", 45.53020975132884);
-	cloud.addDist("C", "E", 70.34912934784623);
-	cloud.addDist("C", "G", 47.05316142407437);
-	cloud.addDist("D", "A", 7.211102550927978);
-	cloud.addDist("D", "B", 32.14031735997639);
-	cloud.addDist("D", "C", 45.53020975132884);
-	cloud.addDist("D", "E", 32.28002478313795);
-	cloud.addDist("D", "F", 34.91418050019218);
-	cloud.addDist("D", "G", 56.142675390472796);
-	cloud.addDist("E", "A", 69.32532004974806);
-	cloud.addDist("E", "B", 70.22819946431775);
-	cloud.addDist("E", "C", 48.52834223420371);
-	cloud.addDist("E", "D", 17);
-	cloud.addDist("E", "F", 31.400636936215164);
-	cloud.addDist("E", "G", 43.18564576337837);
-	cloud.addDist("F", "B", 70.34912934784623);
-	cloud.addDist("F", "D", 32.28002478313795);
-	cloud.addDist("F", "E", 33.481338085566414);
-	cloud.addDist("F", "G", 40.620192023179804);
-	cloud.addDist("G", "A", 33.391615714128);
-	cloud.addDist("G", "B", 16.673332000533065);
-	cloud.addDist("G", "C", 47.05316142407437);
-	cloud.addDist("G", "D", 34.91418050019218);
-	cloud.addDist("G", "E", 70.22819946431775);
-	cloud.addDist("G", "F", 33.481338085566414);
-
-	cloud.calcPositions();
-}
+cloud = new Cloud();
+//dataSet1(); //Anker werden unter Angabe von kartesischen Koordindaten eingefügt
+//dataSet2(); //Anker werden unter Angabe von Abständen eingefügt, RTK-Anker unter Angabe von geographischen Koordinaten 
+dataSet3(); //Anker werden unter Angabe von Abständen eingefügt, RTK-Anker unter Angabe von kartesischen Koordindaten 
