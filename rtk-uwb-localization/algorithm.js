@@ -15,7 +15,7 @@ class Cloud {
 	}
 
 	removeNode(name) {
-		node = this.getNodeByName(name)
+		let node = this.getNodeByName(name)
 		if (node != null) {
 			this.anchors.forEach(function (elem) { elem.deleteNeighbour(this) }, node);
 			this.anchors = this.anchors.filter(function (elem) { return elem != node });
@@ -26,8 +26,8 @@ class Cloud {
 	}
 
 	addDist(nameA, nameB, dist) {
-		nodeA = this.getNodeByName(nameA);
-		nodeB = this.getNodeByName(nameB);
+		let nodeA = this.getNodeByName(nameA);
+		let nodeB = this.getNodeByName(nameB);
 		if (nodeA && nodeB) {
 			nodeA.addNeighbour(nodeB, dist);
 			nodeB.addNeighbour(nodeA, dist);
@@ -37,17 +37,9 @@ class Cloud {
 	}
 
 	getDist(range, deviation) {
-		result = "";
+		let result = "";
 		for (i = 0; i < this.anchors.length; i++) {
 			result += this.anchors[i].getNeighboursString();
-			/*for(j=0;j<this.anchors.length;j++){
-        		if(i!=j){
-					let distance = Math.sqrt(Math.pow(this.anchors[i].pos.x - this.anchors[j].pos.x, 2) + Math.pow(this.anchors[i].pos.y - this.anchors[j].pos.y, 2) + Math.pow(this.anchors[i].pos.z - this.anchors[j].pos.z, 2));
-					if(distance<range+getRandom(-deviation,deviation)){
-						result+=this.anchors[i].name+";"+this.anchors[j].name+";"+distance+"\n";
-					}				
-				}
-			}*/
 		}
 		return result
 	}
@@ -71,12 +63,14 @@ class Cloud {
 	}
 
 	calcNeighbours(name, range, deviation) {
-		node = this.getNodeByName(name);
+		let node = this.getNodeByName(name);
 		if (node != null && node.pos != null) {
 			node.neighbours = [];
 			for (j = 0; j < this.anchors.length; j++) {
 				if (node.name != this.anchors[j].name && this.anchors[j].pos != null) {
-					let distance = Math.sqrt(Math.pow(node.pos.x - this.anchors[j].pos.x, 2) + Math.pow(node.pos.y - this.anchors[j].pos.y, 2) + Math.pow(node.pos.z - this.anchors[j].pos.z, 2));
+					let distance = 	Math.sqrt(Math.pow(node.pos.x - this.anchors[j].pos.x, 2) + 
+									Math.pow(node.pos.y - this.anchors[j].pos.y, 2) + 
+									Math.pow(node.pos.z - this.anchors[j].pos.z, 2));
 					if (distance < range + getRandom(-deviation, deviation)) {
 						node.addNeighbour(this.anchors[j], distance);
 					}
@@ -86,9 +80,18 @@ class Cloud {
 	}
 
 	toString(accuracy) {
-		//this.anchors.forEach(function(elem){if(elem.pos){pos=roundV(elem.pos,2);console.log(elem.name+":{x:"+pos.x+",y:"+pos.y+",z:"+pos.z+"}")}else{console.log(elem.name+":Position unbestimmt")}});
-		result = "";
-		this.anchors.forEach(function (elem) { if (elem.pos) { pos = vec2Pos(roundV(pos2Vec(elem.pos), accuracy)); result += elem.name + ":Punkt(" + pos.x + "," + pos.y + "," + pos.z + ")\n"; } else { result += (elem.name + ":Position unbestimmt\n") } });
+		let result = "";
+		this.anchors.forEach(
+			function (elem) { 
+				if (elem.pos) { 
+					pos = vec2Pos(roundV(pos2Vec(elem.pos), accuracy)); 
+					result += elem.name + ":Punkt(" + pos.x + "," + pos.y + "," + pos.z + ")\n"; 
+				} 
+				else { 
+					result += (elem.name + ":Position unbestimmt\n") 
+				} 
+			}
+		);
 		return result.slice(0, -1);
 	}
 
@@ -106,7 +109,6 @@ class Cloud {
 		}
 		if (this.determinedAnchors.length > 3) {
 			for (let i = 0; i < clouds.length; i++) {
-				//let intersection = clouds[i].filter(function(elem) { return this.indexOf(elem) >-1; },this.determinedAnchors);
 				let intersection = this.determinedAnchors.filter(function (elem) { return this.indexOf(elem) > -1; }, clouds[i]);
 				let s = this.getFourIndependentAnchors(intersection, false)
 				if (s.length > 3) {
@@ -121,15 +123,10 @@ class Cloud {
 			undefinedAnchors = this.anchors.filter(function (elem) { return elem.pos == null });
 			if (undefinedAnchors.length > 0) {
 				console.log("Es konnten NICHT alle Anker eindeutig bestimmt werden!");
-				//console.log("Folgende Anker konnten nicht bestimmt werden:");
-				//undefinedAnchors.forEach(function(elem){console.log(elem.name)});
 			}
 			else {
 				console.log("Alle Anker konnten bestimmt werden!");
 			}
-			//console.log("Folgende Ankerpositionen konnten bestimmt werden:");
-			//this.determinedAnchors.forEach(function(elem){console.log(elem.name+":{x:"+elem.pos.x+",y:"+elem.pos.y+",z:"+elem.pos.z+"}")});
-			//this.determinedAnchors.forEach(function(elem){pos=roundV(elem.pos,2);console.log(elem.name+":"+pos.x+",y:"+pos.y+",z:"+pos.z+"}")});
 		}
 		else {
 			console.log("Keine Ankerkombination steht sozu einander, dass eine eindeutige Positionsbestimmung möglich ist.")
@@ -138,7 +135,14 @@ class Cloud {
 		for (i = 0; i < this.determinedAnchors.length; i++) {
 			for (j = 0; j < this.determinedAnchors.length; j++) {
 				if (i != j) {
-					this.determinedAnchors[i].addNeighbour(this.determinedAnchors[j], Math.sqrt(Math.pow(this.determinedAnchors[i].pos.x - this.determinedAnchors[j].pos.x, 2) + Math.pow(this.determinedAnchors[i].pos.y - this.determinedAnchors[j].pos.y, 2) + Math.pow(this.determinedAnchors[i].pos.z - this.determinedAnchors[j].pos.z, 2)));
+					this.determinedAnchors[i].addNeighbour(
+						this.determinedAnchors[j], 
+						Math.sqrt(
+							Math.pow(this.determinedAnchors[i].pos.x - this.determinedAnchors[j].pos.x, 2) + 
+							Math.pow(this.determinedAnchors[i].pos.y - this.determinedAnchors[j].pos.y, 2) + 
+							Math.pow(this.determinedAnchors[i].pos.z - this.determinedAnchors[j].pos.z, 2)
+						)
+					);
 				}
 			}
 		}
@@ -150,17 +154,33 @@ class Cloud {
 			determinedFixedNodes.push([fixednodes[i].pos, this.getAbsolutePosition(fixednodes[i])])
 		};
 		if (determinedFixedNodes.length > 3) {
-			v = [[determinedFixedNodes[0][0].x - determinedFixedNodes[1][0].x, determinedFixedNodes[0][0].y - determinedFixedNodes[1][0].y, determinedFixedNodes[0][0].z - determinedFixedNodes[1][0].z],
-			[determinedFixedNodes[0][0].x - determinedFixedNodes[2][0].x, determinedFixedNodes[0][0].y - determinedFixedNodes[2][0].y, determinedFixedNodes[0][0].z - determinedFixedNodes[2][0].z],
-			[determinedFixedNodes[0][0].x - determinedFixedNodes[3][0].x, determinedFixedNodes[0][0].y - determinedFixedNodes[3][0].y, determinedFixedNodes[0][0].z - determinedFixedNodes[3][0].z]];
-			w = [[determinedFixedNodes[0][1].x - determinedFixedNodes[1][1].x, determinedFixedNodes[0][1].y - determinedFixedNodes[1][1].y, determinedFixedNodes[0][1].z - determinedFixedNodes[1][1].z],
-			[determinedFixedNodes[0][1].x - determinedFixedNodes[2][1].x, determinedFixedNodes[0][1].y - determinedFixedNodes[2][1].y, determinedFixedNodes[0][1].z - determinedFixedNodes[2][1].z],
-			[determinedFixedNodes[0][1].x - determinedFixedNodes[3][1].x, determinedFixedNodes[0][1].y - determinedFixedNodes[3][1].y, determinedFixedNodes[0][1].z - determinedFixedNodes[3][1].z]];
-			u = multMatrix(v, invMatrix(w));
-			r = vec2Pos(multMatrix(u, pos2Vec(determinedFixedNodes[0][1])));
-			x = determinedFixedNodes[0][0].x - r.x;
-			y = determinedFixedNodes[0][0].y - r.y;
-			z = determinedFixedNodes[0][0].z - r.z;
+			let v = [	
+					 [determinedFixedNodes[0][0].x - determinedFixedNodes[1][0].x, 
+					  determinedFixedNodes[0][0].y - determinedFixedNodes[1][0].y, 
+					  determinedFixedNodes[0][0].z - determinedFixedNodes[1][0].z],
+					 [determinedFixedNodes[0][0].x - determinedFixedNodes[2][0].x, 
+					  determinedFixedNodes[0][0].y - determinedFixedNodes[2][0].y, 
+					  determinedFixedNodes[0][0].z - determinedFixedNodes[2][0].z],
+					 [determinedFixedNodes[0][0].x - determinedFixedNodes[3][0].x, 
+					  determinedFixedNodes[0][0].y - determinedFixedNodes[3][0].y, 
+					  determinedFixedNodes[0][0].z - determinedFixedNodes[3][0].z]
+					];
+			let w = [
+					 [determinedFixedNodes[0][1].x - determinedFixedNodes[1][1].x, 
+					  determinedFixedNodes[0][1].y - determinedFixedNodes[1][1].y, 
+					  determinedFixedNodes[0][1].z - determinedFixedNodes[1][1].z],
+					 [determinedFixedNodes[0][1].x - determinedFixedNodes[2][1].x, 
+					  determinedFixedNodes[0][1].y - determinedFixedNodes[2][1].y, 
+					  determinedFixedNodes[0][1].z - determinedFixedNodes[2][1].z],
+					 [determinedFixedNodes[0][1].x - determinedFixedNodes[3][1].x, 
+					  determinedFixedNodes[0][1].y - determinedFixedNodes[3][1].y, 
+					  determinedFixedNodes[0][1].z - determinedFixedNodes[3][1].z]
+					];
+			let u = multMatrix(v, invMatrix(w));
+			let r = vec2Pos(multMatrix(u, pos2Vec(determinedFixedNodes[0][1])));
+			let x = determinedFixedNodes[0][0].x - r.x;
+			let y = determinedFixedNodes[0][0].y - r.y;
+			let z = determinedFixedNodes[0][0].z - r.z;
 			this.determinedAnchors.forEach(function (elem) {
 				elem.pos = vec2Pos(addVector([x, y, z], multMatrix(u, pos2Vec(elem.pos))));
 			});
@@ -168,7 +188,15 @@ class Cloud {
 		else {
 			console.log("Es konnten nicht genug RTK-Anker bestimmt werden!");
 			console.log("Folgende Anker konnten nicht bestimmt werden:");
-			fixednodes.filter(function (elem) { return cloud.getNodeByName(elem.name) == null; }).forEach(function (elem) { console.log(elem.name) });
+			fixednodes.filter(
+				function (elem) { 
+					return cloud.getNodeByName(elem.name) == null;
+				}
+			).forEach(
+				function (elem) { 
+					console.log(elem.name);
+				}
+			);
 		}
 	}
 
@@ -177,8 +205,7 @@ class Cloud {
 	}
 
 	getAbsolutePosition(node) {
-		let intersection = node.getNeighbours().filter(function (elem) { return this.indexOf(elem) > -1 }, this.determinedAnchors);
-		//let intersection = this.determinedAnchors.filter(function(elem){console.log(this.indexOf(elem));return this.indexOf(elem) > -1},node.getNeighbours());
+		let intersection = node.getNeighbours().filter(function (elem) { return this.indexOf(elem) > -1;},this.determinedAnchors);
 		let s = this.getFourIndependentAnchors(intersection, false);
 		if (s.length > 3) {
 			return this.calcAbsolutePosition(s, node);
@@ -208,8 +235,6 @@ class Cloud {
 		let d = [node.getDist(cos[0]), node.getDist(cos[1]), node.getDist(cos[2]), node.getDist(cos[3])]
 		let x3 = (Math.pow(d[0], 2) - Math.pow(d[1], 2) + Math.pow(x1, 2)) / (2 * x1);
 		let y3 = (Math.pow(d[0], 2) - Math.pow(x3, 2) - Math.pow(d[2], 2) + Math.pow(x2 - x3, 2) + Math.pow(y2, 2)) / (2 * y2);
-		//let z3=Math.sqrt(Math.pow(d[0],2)-Math.pow(x3,2)-Math.pow(y3,2));
-		//let z3 = Math.sqrt(Math.round(Math.pow(d[0],2))-Math.round(Math.pow(x3,2)-Math.pow(y3,2)));
 		let z3 = Math.sqrt(Math.abs(Math.pow(d[0], 2) - Math.pow(x3, 2) - Math.pow(y3, 2)));
 		let m1 = vec2Pos(addVector(pos2Vec(cos[0].pos), multMatrix([x, y, z], [x3, y3, z3])))
 		let m2 = vec2Pos(addVector(pos2Vec(cos[0].pos), multMatrix([x, y, mz], [x3, y3, z3])))
@@ -222,6 +247,7 @@ class Cloud {
 			return m2
 		}
 	}
+	
 	getFourIndependentAnchors(cloud, setValues) {
 		for (let i = 0; i < cloud.length; i++) {
 			for (let j = i + 1; j < cloud.length; j++) {
@@ -231,20 +257,16 @@ class Cloud {
 							let d = [cloud[i].getDist(cloud[j]), cloud[i].getDist(cloud[k]), cloud[j].getDist(cloud[k])].sort();
 							if (d[0] + d[1] != d[2]) {
 								d = [cloud[i].getDist(cloud[j]), cloud[i].getDist(cloud[k]), cloud[j].getDist(cloud[k])];
-								//d[0]:ab;d[1]:ac;d[2]:bc
 								let x1 = d[0];																					//ab
-								let x2 = (Math.pow(d[1], 2) - Math.pow(d[2], 2) + Math.pow(d[0], 2)) / (2 * d[0]);							//(ac^2-bc^2+ab^2)/(2*ab)
-								let y2 = Math.sqrt(Math.pow(d[1], 2) - Math.pow(x2, 2));												//√(ac^2-xc^2
+								let x2 = (Math.pow(d[1], 2) - Math.pow(d[2], 2) + Math.pow(d[0], 2)) / (2 * d[0]);				//(ac^2-bc^2+ab^2)/(2*ab)
+								let y2 = Math.sqrt(Math.pow(d[1], 2) - Math.pow(x2, 2));										//√(ac^2-xc^2
 								for (let m = 0; m < cloud.length; m++) {
 									if (m != i && m != j && m != k) {
-										//d2[0]:ad;d2[1]:bd;d2[2]:cd
 										let d2 = [cloud[i].getDist(cloud[m]), cloud[j].getDist(cloud[m]), cloud[k].getDist(cloud[m])];
 										let x3 = (Math.pow(d2[0], 2) - Math.pow(d2[1], 2) + Math.pow(d[0], 2)) / (2 * d[0]);
 										let y3 = (Math.pow(d2[0], 2) - Math.pow(x3, 2) - Math.pow(d2[2], 2) + Math.pow(x2 - x3, 2) + Math.pow(y2, 2)) / (2 * y2)
 										let z3 = Math.sqrt(Math.round(Math.pow(d2[0], 2)) - Math.round(Math.pow(x3, 2) + Math.pow(y3, 2)));
-										//let z3=Math.sqrt(Math.pow(d2[0],2)-Math.pow(x3,2)-Math.pow(y3,2));
 										if (z3 != 0) {
-											//if(Math.round(Math.pow(d2[0],2))-Math.round(Math.pow(x3,2)+Math.pow(y3,2))!=0){
 											if (setValues) {
 												cloud[i].setPosition(0, 0, 0);
 												cloud[j].setPosition(x1, 0, 0);
@@ -255,7 +277,6 @@ class Cloud {
 												this.determinedAnchors.push(cloud[k]);
 												this.determinedAnchors.push(cloud[m]);
 											}
-											//console.log([cloud[i],cloud[j],cloud[k],cloud[m]])
 											return [cloud[i], cloud[j], cloud[k], cloud[m]];
 										}
 									}
@@ -313,7 +334,7 @@ class Node {
 	}
 
 	addNeighbour(node, dist) {
-		s = this.neighbours.filter(function (elem) { return elem.node == node; })
+		let s = this.neighbours.filter(function (elem) { return elem.node == node; })
 		if (s.length > 0) {
 			s[0].dist = (s[0].dist + dist) / 2;
 		}
@@ -331,15 +352,13 @@ class Node {
 	}
 
 	getNeighboursString() {
-		result = ""
+		let result = ""
 		this.neighbours.forEach(function (elem) { result += this + ";" + elem.node.name + ";" + elem.dist + "\n" }, this.name);
-		//this.neighbours.forEach(function(elem){result+="cloud.addDist(\""+this+"\",\""+elem.node.name+"\","+elem.dist+");\n"},this.name);
-		//this.neighbours.forEach(function(elem){result+="cloud.getNodeByName(\""+this+"\").addNeighbour(cloud.getNodeByName(\""+elem.node.name+"\"),"+elem.dist+");\n"},this.name);
-		//this.neighbours.forEach(function(elem){result+=this+".addNeighbour(cloud.getNodeByName(\""+elem.node.name+"\"),"+elem.dist+");\n"},this.name);
 		return result;
 	}
+	
 	getNeighbours() {
-		result = [];
+		let result = [];
 		this.neighbours.forEach(function (elem) { result.push(elem.node); });
 		return result;
 	}
@@ -363,7 +382,6 @@ function ecef2altlatlon(pos) {
 	let d = Math.atan2(a * z, b * c);
 	let lat = Math.atan2((z + (Math.pow(a, 2) / Math.pow(b, 2) - 1) * b * Math.pow(Math.sin(d), 3)),
 		(c - (1 - Math.pow(b, 2) / Math.pow(a, 2)) * a * Math.pow(Math.cos(d), 3)));
-	//let n = a/Math.sqrt(1-(1-Math.pow(b,2)/Math.pow(a,2))*Math.pow(Math.sin(lat),2))
 	let n = Math.pow(a, 2) / Math.sqrt(Math.pow(a, 2) * Math.pow(Math.cos(lat), 2) +
 		Math.pow(b, 2) * Math.pow(Math.sin(lat), 2));
 	let lon = Math.atan2(y, x) % (2 * Math.PI);
@@ -377,7 +395,6 @@ function altlatlon2ecef(res) {
 	let lat = +res.lat * (Math.PI / 180);
 	let lon = +res.lon * (Math.PI / 180);
 	let alt = +res.alt;
-	//let n = a / Math.sqrt(1-(1-Math.pow(b,2)/Math.pow(a,2))*Math.pow(Math.sin(lat),2))
 	let n = Math.pow(a, 2) / Math.sqrt(Math.pow(a, 2) * Math.pow(Math.cos(lat), 2) +
 		Math.pow(b, 2) * Math.pow(Math.sin(lat), 2));
 	let x = (n + alt) * Math.cos(lat) * Math.cos(lon);
@@ -435,8 +452,20 @@ function invMatrix(matA) {
 	}
 	//Gauß-Jordan forward
 	for (let l = 0; l < n; l++) {
-		if (matA[l][l] == 0) {
-			for (let i = l + 1; i < n; i++) { if (matA[l][i] != 0) { for (let m = 0; m < n; m++) { let temp = matA[m][i]; matA[m][i] = matA[m][l]; matA[m][l] = temp; temp = res[m][i]; res[m][i] = res[m][l]; res[m][l] = temp; } break; } }//Zeilentausch
+		if (matA[l][l] == 0) {//Zeilentausch
+			for (let i = l + 1; i < n; i++) { 
+				if (matA[l][i] != 0) { 
+					for (let m = 0; m < n; m++) { 
+						let temp = matA[m][i]; 
+						matA[m][i] = matA[m][l]; 
+						matA[m][l] = temp;
+						temp = res[m][i]; 
+						res[m][i] = res[m][l]; 
+						res[m][l] = temp; 
+					}
+					break;
+				} 
+			}
 		}
 		if (matA[l][l] == 0) { return null; }//Siguläre Matrix
 		for (let i = l + 1; i < n; i++) {
@@ -449,8 +478,20 @@ function invMatrix(matA) {
 	}
 	//Gauß-Jordan backward
 	for (let l = n - 1; l >= 0; l--) {
-		if (matA[l][l] == 0) {
-			for (let i = l - 1; i >= 0; i--) { if (matA[l][i] != 0) { for (let m = 0; m < n; m++) { let temp = matA[m][i]; matA[m][i] = matA[m][l]; matA[m][l] = temp; temp = res[m][i]; res[m][i] = res[m][l]; res[m][l] = temp; } break; } }//Zeilentausch
+		if (matA[l][l] == 0) {//Zeilentausch
+			for (let i = l - 1; i >= 0; i--) { 
+				if (matA[l][i] != 0) { 
+					for (let m = 0; m < n; m++) { 
+						let temp = matA[m][i]; 
+						matA[m][i] = matA[m][l]; 
+						matA[m][l] = temp; 
+						temp = res[m][i]; 
+						res[m][i] = res[m][l]; 
+						res[m][l] = temp; 
+					}
+					break;
+				} 
+			}
 		}
 		if (matA[l][l] == 0) { return null; }//Siguläre Matrix
 		for (let i = l - 1; i >= 0; i--) {
@@ -493,7 +534,6 @@ function dataSet1() {
 	cloud.addNode("H", { x: -18, y: 19, z: 33 });
 	cloud.addNode("I", { x: 2, y: 9, z: -11 });
 	cloud.addNode("J", { x: -33, y: -28, z: -13 });
-	//console.log(cloud.toString(6));
 
 	cloud.addNode("RTK1", { x: -30, y: -30, z: 0 });
 	cloud.calcNeighbours("RTK1", 72, 0);
@@ -519,15 +559,12 @@ function dataSet1() {
 
 	cloud.calcAllNeighbours(72, 0);
 	cloud.clearPositions();
-	//console.log(cloud.toString(6));
-	//console.log(cloud.getDist(72,0));
 
 	cloud.calcPositions();
 	console.log(cloud.toString(6));
 	cloud.adjustCOS([rtk1, rtk2, rtk3, rtk4]);
 	console.log(cloud.toString(6));
 
-	//console.log(tag)
 	console.log(cloud.getTagPosition(tag, 6));
 }
 
@@ -619,7 +656,6 @@ function dataSet2() {
 	console.log(cloud.toString(6));
 
 	rtk1 = new Node("RTK1", altlatlon2ecef({ "lat": 52.42106878654074, "lon": 13.337160052192699, "alt": 62.18834827840328 }));
-	//rtk1=new Node("RTK1",{"x":-30,"y":-30,"z":0});
 	rtk1.addNeighbour(cloud.getNodeByName("B"), 56.293871780150276);
 	rtk1.addNeighbour(cloud.getNodeByName("C"), 67.68308503607086);
 	rtk1.addNeighbour(cloud.getNodeByName("E"), 29.88310559496787);
@@ -628,7 +664,6 @@ function dataSet2() {
 	rtk1.addNeighbour(cloud.getNodeByName("I"), 51.633322573702344);
 	rtk1.addNeighbour(cloud.getNodeByName("J"), 13.490737563232042);
 	rtk2 = new Node("RTK2", altlatlon2ecef({ "lat": 52.42086253420369, "lon": 13.337841262602616, "alt": 67.23155479039997 }));
-	//rtk2=new Node("RTK2",{"x":-20,"y":20,"z":-10});
 	rtk2.addNeighbour(cloud.getNodeByName("B"), 51.07837115648854);
 	rtk2.addNeighbour(cloud.getNodeByName("E"), 45.749316934791494);
 	rtk2.addNeighbour(cloud.getNodeByName("F"), 56.3382640840131);
@@ -637,7 +672,6 @@ function dataSet2() {
 	rtk2.addNeighbour(cloud.getNodeByName("I"), 24.61706725018234);
 	rtk2.addNeighbour(cloud.getNodeByName("J"), 49.8196748283246);
 	rtk3 = new Node("RTK3", altlatlon2ecef({ "lat": 52.42055089692998, "lon": 13.337923853594258, "alt": 125.46263982914388 }));
-	//rtk3=new Node("RTK3",{x:40,y:40,z:15});
 	rtk3.addNeighbour(cloud.getNodeByName("A"), 35.17101079013795);
 	rtk3.addNeighbour(cloud.getNodeByName("B"), 49.33558553417604);
 	rtk3.addNeighbour(cloud.getNodeByName("C"), 69.61321713582845);
@@ -647,7 +681,6 @@ function dataSet2() {
 	rtk3.addNeighbour(cloud.getNodeByName("H"), 64.25729530566937);
 	rtk3.addNeighbour(cloud.getNodeByName("I"), 55.50675634551167);
 	rtk4 = new Node("RTK4", altlatlon2ecef({ "lat": 52.42090120032782, "lon": 13.337024423643811, "alt": 101.77488924656063 }));
-	//rtk4=new Node("RTK4",{"x":10,"y":-30,"z":20});
 	rtk4.addNeighbour(cloud.getNodeByName("A"), 54.42425929675111);
 	rtk4.addNeighbour(cloud.getNodeByName("B"), 27.730849247724095);
 	rtk4.addNeighbour(cloud.getNodeByName("C"), 24.1039415863879);
@@ -663,14 +696,13 @@ function dataSet2() {
 
 	tag = new Node("Tag", null);
 	//while(1){
-	tag.addNeighbour(cloud.getNodeByName("B"), 26.076809620810597);
-	tag.addNeighbour(cloud.getNodeByName("F"), 45.79301256742124);
-	tag.addNeighbour(cloud.getNodeByName("G"), 24.535688292770594);
-	tag.addNeighbour(cloud.getNodeByName("H"), 39.45883931389772);
-	tag.addNeighbour(cloud.getNodeByName("I"), 11.357816691600547);
-	tag.addNeighbour(cloud.getNodeByName("J"), 49.82971001320397);
-	//console.log(cloud.getTagPosition(tag,6));
-	console.log(ecef2altlatlon(cloud.getTagPosition(tag, 6)));
+		tag.addNeighbour(cloud.getNodeByName("B"), 26.076809620810597);
+		tag.addNeighbour(cloud.getNodeByName("F"), 45.79301256742124);
+		tag.addNeighbour(cloud.getNodeByName("G"), 24.535688292770594);
+		tag.addNeighbour(cloud.getNodeByName("H"), 39.45883931389772);
+		tag.addNeighbour(cloud.getNodeByName("I"), 11.357816691600547);
+		tag.addNeighbour(cloud.getNodeByName("J"), 49.82971001320397);
+		console.log(ecef2altlatlon(cloud.getTagPosition(tag, 6)));
 	//}
 }
 
@@ -761,7 +793,6 @@ function dataSet3() {
 	cloud.calcPositions();
 	console.log(cloud.toString(6));
 
-	//rtk1=new Node("RTK1",altlatlon2ecef({"lat":52.42106878654074,"lon":13.337160052192699,"alt":62.18834827840328}));
 	rtk1 = new Node("RTK1", { "x": -30, "y": -30, "z": 0 });
 	rtk1.addNeighbour(cloud.getNodeByName("B"), 56.293871780150276);
 	rtk1.addNeighbour(cloud.getNodeByName("C"), 67.68308503607086);
@@ -770,7 +801,6 @@ function dataSet3() {
 	rtk1.addNeighbour(cloud.getNodeByName("H"), 60.28266749240614);
 	rtk1.addNeighbour(cloud.getNodeByName("I"), 51.633322573702344);
 	rtk1.addNeighbour(cloud.getNodeByName("J"), 13.490737563232042);
-	//rtk2=new Node("RTK2",altlatlon2ecef({"lat":52.42086253420369,"lon":13.337841262602616,"alt":67.23155479039997}));
 	rtk2 = new Node("RTK2", { "x": -20, "y": 20, "z": -10 });
 	rtk2.addNeighbour(cloud.getNodeByName("B"), 51.07837115648854);
 	rtk2.addNeighbour(cloud.getNodeByName("E"), 45.749316934791494);
@@ -779,7 +809,6 @@ function dataSet3() {
 	rtk2.addNeighbour(cloud.getNodeByName("H"), 43.05810028322197);
 	rtk2.addNeighbour(cloud.getNodeByName("I"), 24.61706725018234);
 	rtk2.addNeighbour(cloud.getNodeByName("J"), 49.8196748283246);
-	//rtk3=new Node("RTK3",altlatlon2ecef({"lat":52.42055089692998,"lon":13.337923853594258,"alt":125.46263982914388}));
 	rtk3 = new Node("RTK3", { x: 40, y: 40, z: 15 });
 	rtk3.addNeighbour(cloud.getNodeByName("A"), 35.17101079013795);
 	rtk3.addNeighbour(cloud.getNodeByName("B"), 49.33558553417604);
@@ -789,7 +818,6 @@ function dataSet3() {
 	rtk3.addNeighbour(cloud.getNodeByName("G"), 48.27007354458868);
 	rtk3.addNeighbour(cloud.getNodeByName("H"), 64.25729530566937);
 	rtk3.addNeighbour(cloud.getNodeByName("I"), 55.50675634551167);
-	//rtk4=new Node("RTK4",altlatlon2ecef({"lat":52.42090120032782,"lon":13.337024423643811,"alt":101.77488924656063}));
 	rtk4 = new Node("RTK4", { "x": 10, "y": -30, "z": 20 });
 	rtk4.addNeighbour(cloud.getNodeByName("A"), 54.42425929675111);
 	rtk4.addNeighbour(cloud.getNodeByName("B"), 27.730849247724095);
@@ -806,14 +834,13 @@ function dataSet3() {
 
 	tag = new Node("Tag", null);
 	//while(1){
-	tag.addNeighbour(cloud.getNodeByName("B"), 26.076809620810597);
-	tag.addNeighbour(cloud.getNodeByName("F"), 45.79301256742124);
-	tag.addNeighbour(cloud.getNodeByName("G"), 24.535688292770594);
-	tag.addNeighbour(cloud.getNodeByName("H"), 39.45883931389772);
-	tag.addNeighbour(cloud.getNodeByName("I"), 11.357816691600547);
-	tag.addNeighbour(cloud.getNodeByName("J"), 49.82971001320397);
-	console.log(cloud.getTagPosition(tag, 6));
-	//console.log(ecef2altlatlon(cloud.getTagPosition(tag,6)));
+		tag.addNeighbour(cloud.getNodeByName("B"), 26.076809620810597);
+		tag.addNeighbour(cloud.getNodeByName("F"), 45.79301256742124);
+		tag.addNeighbour(cloud.getNodeByName("G"), 24.535688292770594);
+		tag.addNeighbour(cloud.getNodeByName("H"), 39.45883931389772);
+		tag.addNeighbour(cloud.getNodeByName("I"), 11.357816691600547);
+		tag.addNeighbour(cloud.getNodeByName("J"), 49.82971001320397);
+		console.log(cloud.getTagPosition(tag, 6));
 	//}
 }
 
