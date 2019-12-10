@@ -41,7 +41,7 @@ class Cloud {
 		for (i = 0; i < this.anchors.length; i++) {
 			result += this.anchors[i].getNeighboursString();
 			/*for(j=0;j<this.anchors.length;j++){
-        if(i!=j){
+        		if(i!=j){
 					let distance = Math.sqrt(Math.pow(this.anchors[i].pos.x - this.anchors[j].pos.x, 2) + Math.pow(this.anchors[i].pos.y - this.anchors[j].pos.y, 2) + Math.pow(this.anchors[i].pos.z - this.anchors[j].pos.z, 2));
 					if(distance<range+getRandom(-deviation,deviation)){
 						result+=this.anchors[i].name+";"+this.anchors[j].name+";"+distance+"\n";
@@ -156,7 +156,7 @@ class Cloud {
 			w = [[determinedFixedNodes[0][1].x - determinedFixedNodes[1][1].x, determinedFixedNodes[0][1].y - determinedFixedNodes[1][1].y, determinedFixedNodes[0][1].z - determinedFixedNodes[1][1].z],
 			[determinedFixedNodes[0][1].x - determinedFixedNodes[2][1].x, determinedFixedNodes[0][1].y - determinedFixedNodes[2][1].y, determinedFixedNodes[0][1].z - determinedFixedNodes[2][1].z],
 			[determinedFixedNodes[0][1].x - determinedFixedNodes[3][1].x, determinedFixedNodes[0][1].y - determinedFixedNodes[3][1].y, determinedFixedNodes[0][1].z - determinedFixedNodes[3][1].z]];
-			u = multMatrix(v, matrix_invert(w));
+			u = multMatrix(v, invMatrix(w));
 			r = vec2Pos(multMatrix(u, pos2Vec(determinedFixedNodes[0][1])));
 			x = determinedFixedNodes[0][0].x - r.x;
 			y = determinedFixedNodes[0][0].y - r.y;
@@ -354,35 +354,35 @@ class Node {
 }
 
 function ecef2altlatlon(pos) {
-	x = pos.x;
-	y = pos.y;
-	z = pos.z;
-	a = 6378137;		//Äquatrorradius nach WGS84
-	b = 6356752.314;	//Polradius nach WGS84
-	c = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-	d = Math.atan2(a * z, b * c);
-	lat = Math.atan2((z + (Math.pow(a, 2) / Math.pow(b, 2) - 1) * b * Math.pow(Math.sin(d), 3)),
+	let a = 6378137;		//Äquatrorradius nach WGS84
+	let b = 6356752.314;	//Polradius nach WGS84
+	let x = +pos.x;
+	let y = +pos.y;
+	let z = +pos.z;
+	let c = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+	let d = Math.atan2(a * z, b * c);
+	let lat = Math.atan2((z + (Math.pow(a, 2) / Math.pow(b, 2) - 1) * b * Math.pow(Math.sin(d), 3)),
 		(c - (1 - Math.pow(b, 2) / Math.pow(a, 2)) * a * Math.pow(Math.cos(d), 3)));
-	//n = a/Math.sqrt(1-(1-Math.pow(b,2)/Math.pow(a,2))*Math.pow(Math.sin(lat),2))
-	n = Math.pow(a, 2) / Math.sqrt(Math.pow(a, 2) * Math.pow(Math.cos(lat), 2) +
+	//let n = a/Math.sqrt(1-(1-Math.pow(b,2)/Math.pow(a,2))*Math.pow(Math.sin(lat),2))
+	let n = Math.pow(a, 2) / Math.sqrt(Math.pow(a, 2) * Math.pow(Math.cos(lat), 2) +
 		Math.pow(b, 2) * Math.pow(Math.sin(lat), 2));
-	lon = Math.atan2(y, x) % (2 * Math.PI);
-	alt = c / Math.cos(lat) - n;
+	let lon = Math.atan2(y, x) % (2 * Math.PI);
+	let alt = c / Math.cos(lat) - n;
 	return { "lat": lat * 180 / Math.PI, "lon": lon * 180 / Math.PI, "alt": alt }
 }
 
 function altlatlon2ecef(res) {
-	lat = res.lat * (Math.PI / 180);
-	lon = res.lon * (Math.PI / 180);
-	alt = res.alt;
-	a = 6378137.0 		//Äquatrorradius nach WGS84
-	b = 6356752.314		//Polradius nach WGS84
-	//n = a / Math.sqrt(1-(1-Math.pow(b,2)/Math.pow(a,2))*Math.pow(Math.sin(lat),2))
-	n = Math.pow(a, 2) / Math.sqrt(Math.pow(a, 2) * Math.pow(Math.cos(lat), 2) +
+	let a = 6378137.0 		//Äquatrorradius nach WGS84
+	let b = 6356752.314		//Polradius nach WGS84
+	let lat = +res.lat * (Math.PI / 180);
+	let lon = +res.lon * (Math.PI / 180);
+	let alt = +res.alt;
+	//let n = a / Math.sqrt(1-(1-Math.pow(b,2)/Math.pow(a,2))*Math.pow(Math.sin(lat),2))
+	let n = Math.pow(a, 2) / Math.sqrt(Math.pow(a, 2) * Math.pow(Math.cos(lat), 2) +
 		Math.pow(b, 2) * Math.pow(Math.sin(lat), 2));
-	x = (n + alt) * Math.cos(lat) * Math.cos(lon);
-	y = (n + alt) * Math.cos(lat) * Math.sin(lon);
-	z = (Math.pow(b, 2) / Math.pow(a, 2) * n + alt) * Math.sin(lat);
+	let x = (n + alt) * Math.cos(lat) * Math.cos(lon);
+	let y = (n + alt) * Math.cos(lat) * Math.sin(lon);
+	let z = (Math.pow(b, 2) / Math.pow(a, 2) * n + alt) * Math.sin(lat);
 	return { "x": x, "y": y, "z": z }
 }
 
@@ -427,7 +427,45 @@ function multMatrix(matA, matB) {
 }
 
 function invMatrix(matA) {
-	return matA;
+	let res = [];
+	let n = matA.length;
+	//Generieren der Einheitsmatrix
+	for (let i = 0; i < n; i++) {
+		if (matA[i].length == n) { res.push(Array.from(new Array(n), (x, k) => { return k == i ? 1 : 0 })); } else { return null; }
+	}
+	//Gauß-Jordan forward
+	for (let l = 0; l < n; l++) {
+		if (matA[l][l] == 0) {
+			for (let i = l + 1; i < n; i++) { if (matA[l][i] != 0) { for (let m = 0; m < n; m++) { let temp = matA[m][i]; matA[m][i] = matA[m][l]; matA[m][l] = temp; temp = res[m][i]; res[m][i] = res[m][l]; res[m][l] = temp; } break; } }//Zeilentausch
+		}
+		if (matA[l][l] == 0) { return null; }//Siguläre Matrix
+		for (let i = l + 1; i < n; i++) {
+			let t = matA[l][i] / matA[l][l];
+			for (let k = 0; k < n; k++) {
+				matA[k][i] -= t * matA[k][l];
+				res[k][i] -= t * res[k][l];
+			}
+		}
+	}
+	//Gauß-Jordan backward
+	for (let l = n - 1; l >= 0; l--) {
+		if (matA[l][l] == 0) {
+			for (let i = l - 1; i >= 0; i--) { if (matA[l][i] != 0) { for (let m = 0; m < n; m++) { let temp = matA[m][i]; matA[m][i] = matA[m][l]; matA[m][l] = temp; temp = res[m][i]; res[m][i] = res[m][l]; res[m][l] = temp; } break; } }//Zeilentausch
+		}
+		if (matA[l][l] == 0) { return null; }//Siguläre Matrix
+		for (let i = l - 1; i >= 0; i--) {
+			let t = matA[l][i] / matA[l][l];
+			for (let k = n - 1; k >= 0; k--) {
+				matA[k][i] -= t * matA[k][l];
+				res[k][i] -= t * res[k][l];
+			}
+		}
+	}
+	//Diagonale auf "1" setzen
+	for (let l = 0; l < n; l++) {
+		if (matA[l][l] != 0) { for (let i = 0; i < n; i++) { res[i][l] = res[i][l] / matA[l][l]; } } else { return null; }
+	}
+	return res;
 }
 
 function addVector(vecA, vecB) {
@@ -437,56 +475,6 @@ function addVector(vecA, vecB) {
 function roundV(vec, n) {
 	a = Math.pow(10, n);
 	return [Math.round(vec[0] * a / a), Math.round(vec[1] * a) / a, Math.round(vec[2] * a) / a];
-}
-
-
-function matrix_invert(M) {
-	if (M.length !== M[0].length) { return; }
-	var i = 0, ii = 0, j = 0, dim = M.length, e = 0, t = 0;
-	var I = [], C = [];
-	for (i = 0; i < dim; i += 1) {
-		I[I.length] = [];
-		C[C.length] = [];
-		for (j = 0; j < dim; j += 1) {
-			if (i == j) { I[i][j] = 1; }
-			else { I[i][j] = 0; }
-			C[i][j] = M[i][j];
-		}
-	}
-
-	for (i = 0; i < dim; i += 1) {
-		e = C[i][i];
-		if (e == 0) {
-			for (ii = i + 1; ii < dim; ii += 1) {
-				if (C[ii][i] != 0) {
-					for (j = 0; j < dim; j++) {
-						e = C[i][j];       //temp store i'th row
-						C[i][j] = C[ii][j];//replace i'th row by ii'th
-						C[ii][j] = e;      //repace ii'th by temp
-						e = I[i][j];       //temp store i'th row
-						I[i][j] = I[ii][j];//replace i'th row by ii'th
-						I[ii][j] = e;      //repace ii'th by temp
-					}
-					break;
-				}
-			}
-			e = C[i][i];
-			if (e == 0) { return }
-		}
-		for (j = 0; j < dim; j++) {
-			C[i][j] = C[i][j] / e; //apply to original matrix
-			I[i][j] = I[i][j] / e; //apply to identity
-		}
-		for (ii = 0; ii < dim; ii++) {
-			if (ii == i) { continue; }
-			e = C[ii][i];
-			for (j = 0; j < dim; j++) {
-				C[ii][j] -= e * C[i][j]; //apply to original matrix
-				I[ii][j] -= e * I[i][j]; //apply to identity
-			}
-		}
-	}
-	return I;
 }
 
 cloud = new Cloud();
