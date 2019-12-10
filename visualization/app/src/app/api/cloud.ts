@@ -192,7 +192,7 @@ export class Cloud {
             [determinedFixedNodes[0][1].x - determinedFixedNodes[2][1].x, determinedFixedNodes[0][1].y - determinedFixedNodes[2][1].y, determinedFixedNodes[0][1].z - determinedFixedNodes[2][1].z],
             [determinedFixedNodes[0][1].x - determinedFixedNodes[3][1].x, determinedFixedNodes[0][1].y - determinedFixedNodes[3][1].y, determinedFixedNodes[0][1].z - determinedFixedNodes[3][1].z]];
             // console.log(w);
-            let u = functions.multMatrix(v, functions.matrix_invert(w));
+            let u = functions.multMatrix(v, functions.invMatrix(w));
             let r = functions.vec2Pos(functions.multMatrix(u, functions.pos2Vec(determinedFixedNodes[0][1])));
             let x = determinedFixedNodes[0][0].x - r.x;
             let y = determinedFixedNodes[0][0].y - r.y;

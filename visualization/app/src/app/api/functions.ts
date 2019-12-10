@@ -8,7 +8,7 @@ export class functions {
                 0
             ];
         let z = [origin.x, origin.y, origin.z];
-        return this.vec2Pos(this.multMatrix(this.matrix_invert([this.unitV(x), this.unitV(y), this.unitV(z)]), this.addVector(this.pos2Vec(pos), [-origin.x, -origin.y, -origin.z])));
+        return this.vec2Pos(this.multMatrix(this.invMatrix([this.unitV(x), this.unitV(y), this.unitV(z)]), this.addVector(this.pos2Vec(pos), [-origin.x, -origin.y, -origin.z])));
     }
     static local2ecef(origin, pos) {    //Umrechnung der Pos von dem "senkrecht auf der Erdoberfläche stehenden"-COS ins ECEF-COS
 
@@ -105,52 +105,45 @@ export class functions {
         return [Math.round(vec[0] * a / a), Math.round(vec[1] * a) / a, Math.round(vec[2] * a) / a];
     }
 
-    static matrix_invert(M) {
-        if (M.length !== M[0].length) { return; }
-        let i = 0, ii = 0, j = 0, dim = M.length, e = 0, t = 0;
-        let I = [], C = [];
-        for (i = 0; i < dim; i += 1) {
-            I[I.length] = [];
-            C[C.length] = [];
-            for (j = 0; j < dim; j += 1) {
-                if (i == j) { I[i][j] = 1; }
-                else { I[i][j] = 0; }
-                C[i][j] = M[i][j];
-            }
+    static invMatrix(matA) {
+        let res = [];
+        let n = matA.length;
+        //Generieren der Einheitsmatrix
+        for (let i = 0; i < n; i++) {
+            if (matA[i].length == n) { res.push(Array.from(new Array(n), (x, k) => { return k == i ? 1 : 0 })); } else { return null; }
         }
-
-        for (i = 0; i < dim; i += 1) {
-            e = C[i][i];
-            if (e == 0) {
-                for (ii = i + 1; ii < dim; ii += 1) {
-                    if (C[ii][i] != 0) {
-                        for (j = 0; j < dim; j++) {
-                            e = C[i][j];       //temp store i'th row
-                            C[i][j] = C[ii][j];//replace i'th row by ii'th
-                            C[ii][j] = e;      //repace ii'th by temp
-                            e = I[i][j];       //temp store i'th row
-                            I[i][j] = I[ii][j];//replace i'th row by ii'th
-                            I[ii][j] = e;      //repace ii'th by temp
-                        }
-                        break;
-                    }
-                }
-                e = C[i][i];
-                if (e == 0) { return }
+        //Gauß-Jordan forward
+        for (let l = 0; l < n; l++) {
+            if (matA[l][l] == 0) {
+                for (let i = l + 1; i < n; i++) { if (matA[l][i] != 0) { for (let m = 0; m < n; m++) { let temp = matA[m][i]; matA[m][i] = matA[m][l]; matA[m][l] = temp; temp = res[m][i]; res[m][i] = res[m][l]; res[m][l] = temp; } break; } }//Zeilentausch
             }
-            for (j = 0; j < dim; j++) {
-                C[i][j] = C[i][j] / e; //apply to original matrix
-                I[i][j] = I[i][j] / e; //apply to identity
-            }
-            for (ii = 0; ii < dim; ii++) {
-                if (ii == i) { continue; }
-                e = C[ii][i];
-                for (j = 0; j < dim; j++) {
-                    C[ii][j] -= e * C[i][j]; //apply to original matrix
-                    I[ii][j] -= e * I[i][j]; //apply to identity
+            if (matA[l][l] == 0) { return null; }//Siguläre Matrix
+            for (let i = l + 1; i < n; i++) {
+                let t = matA[l][i] / matA[l][l];
+                for (let k = 0; k < n; k++) {
+                    matA[k][i] -= t * matA[k][l];
+                    res[k][i] -= t * res[k][l];
                 }
             }
         }
-        return I;
+        //Gauß-Jordan backward
+        for (let l = n - 1; l >= 0; l--) {
+            if (matA[l][l] == 0) {
+                for (let i = l - 1; i >= 0; i--) { if (matA[l][i] != 0) { for (let m = 0; m < n; m++) { let temp = matA[m][i]; matA[m][i] = matA[m][l]; matA[m][l] = temp; temp = res[m][i]; res[m][i] = res[m][l]; res[m][l] = temp; } break; } }//Zeilentausch
+            }
+            if (matA[l][l] == 0) { return null; }//Siguläre Matrix
+            for (let i = l - 1; i >= 0; i--) {
+                let t = matA[l][i] / matA[l][l];
+                for (let k = n - 1; k >= 0; k--) {
+                    matA[k][i] -= t * matA[k][l];
+                    res[k][i] -= t * res[k][l];
+                }
+            }
+        }
+        //Diagonale auf "1" setzen
+        for (let l = 0; l < n; l++) {
+            if (matA[l][l] != 0) { for (let i = 0; i < n; i++) { res[i][l] = res[i][l] / matA[l][l]; } } else { return null; }
+        }
+        return res;
     }
 }

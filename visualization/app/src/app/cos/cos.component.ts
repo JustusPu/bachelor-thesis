@@ -169,6 +169,7 @@ export class CosComponent implements OnInit, AfterViewInit {
     })
     this.layers = [];
     this.sortedLayers = [];
+    this.highestLayer=0;
     this.outlines.forEach((elem) => {
       this.addLayer(elem.url, elem.height);
     });
@@ -196,7 +197,6 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.scene.add(layer);
     if (this.sortedLayers.length == 0 || layer.position.y >= this.sortedLayers[this.sortedLayers.length - 1].position.y) {
       this.sortedLayers.push(layer);
-      this.highestLayer = this.sortedLayers.length - 1;
     }
     else {
       for (let i = 0; i < this.sortedLayers.length; i++) {
@@ -206,6 +206,7 @@ export class CosComponent implements OnInit, AfterViewInit {
         }
       }
     }
+    this.highestLayer = this.sortedLayers.length - 1;
     this.refreshWall();
   }
   updateLayer(outlineIndex, height) {
@@ -306,9 +307,9 @@ export class CosComponent implements OnInit, AfterViewInit {
     this.nodes[i].position.z = z;
   }
   addTag() {
+    if(this.tag){this.scene.remove(this.tag)}
     this.tag = new THREE.Mesh(new THREE.SphereGeometry(30, 32, 32), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
     this.scene.add(this.tag);
-    this.moveTag(0, 0, 0);
     this.refreshLayer();
   }
   moveTag(x, y, z) {

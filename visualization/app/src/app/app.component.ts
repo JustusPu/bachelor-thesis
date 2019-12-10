@@ -104,6 +104,8 @@ export class AppComponent implements OnInit {
     let accuracy = 100;
     if (this.step == 1) {
       this.buildingOrigin = functions.altlatlon2ecef({ lat: this.setupCOS.lat, lon: this.setupCOS.lon, alt: this.setupCOS.alt });
+      this.selectedNeighbour=null;
+      this.selectedAnchor=null;
       this.step++;
     }
     else if (this.step == 2) {
@@ -146,6 +148,13 @@ export class AppComponent implements OnInit {
       this.tagCOS.outlines = this.setupCOS.outlines;
       this.tagCOS.addLayers();
       this.tagCOS.addTag();
+      let tags=[];
+      this.tags.forEach(elem=>{
+        tags.push(this.getTag(elem.pos));
+      });
+      this.selectedTagNeighbour=null;
+      this.selectedTag=null;
+      this.tags=[...tags];
       this.tagCOS.nodes.forEach(elem => {
         this.tagCOS.scene.remove(elem);
       });
@@ -456,7 +465,13 @@ export class AppComponent implements OnInit {
     fileReader.onloadend = function (x) {
       let content = JSON.parse((fileReader.result).toString());
       if (content.tags) {
-        self.tags = [...content.tags];
+        self.tags=[];
+        content.tags.forEach(element => {
+          self.tags = [...self.tags,self.getTag(element.pos)];
+        });
+        self.selectedTag=null;
+        self.selectedTagNeighbour=null;
+        // self.tags = [...content.tags];
         self.messageService.add({ sticky: true, severity: 'success', summary: 'Pfad wurde erfolgreich geladen', detail: '' });
       }
       else {

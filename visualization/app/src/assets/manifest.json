@@ -3,12 +3,12 @@
     "name": "Visualiserung der UWB-RTK-Lokalisierung",
     "icons": [
       {
-        "src": "/assets/img/logo/round192.png",
+        "src": "../assets/img/logo/round192.png",
         "type": "image/png",
         "sizes": "192x192"
       },
       {
-        "src": "/assets/img/logo/round512.png",
+        "src": "../assets/img/logo/round512.png",
         "type": "image/png",
         "sizes": "512x512"
       }
