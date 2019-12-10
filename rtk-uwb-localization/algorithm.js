@@ -518,6 +518,11 @@ function roundV(vec, n) {
 	return [Math.round(vec[0] * a / a), Math.round(vec[1] * a) / a, Math.round(vec[2] * a) / a];
 }
 
+cloud = new Cloud();
+dataSet1(); //Anker werden unter Angabe von kartesischen Koordindaten eingefügt
+dataSet2(); //Anker werden unter Angabe von Abständen eingefügt, RTK-Anker unter Angabe von geographischen Koordinaten 
+dataSet3(); //Anker werden unter Angabe von Abständen eingefügt, RTK-Anker unter Angabe von kartesischen Koordindaten 
+
 function dataSet1() {
 	console.log("DataSet1");
 	cloud.addNode("A", { x: 34, y: 15, z: 39 });
@@ -843,8 +848,3 @@ function dataSet3() {
 		console.log(cloud.getTagPosition(tag, 6));
 	//}
 }
-
-cloud = new Cloud();
-//dataSet1(); //Anker werden unter Angabe von kartesischen Koordindaten eingefügt
-//dataSet2(); //Anker werden unter Angabe von Abständen eingefügt, RTK-Anker unter Angabe von geographischen Koordinaten 
-dataSet3(); //Anker werden unter Angabe von Abständen eingefügt, RTK-Anker unter Angabe von kartesischen Koordindaten 
