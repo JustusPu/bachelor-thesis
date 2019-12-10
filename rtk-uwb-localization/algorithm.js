@@ -257,9 +257,9 @@ class Cloud {
 							let d = [cloud[i].getDist(cloud[j]), cloud[i].getDist(cloud[k]), cloud[j].getDist(cloud[k])].sort();
 							if (d[0] + d[1] != d[2]) {
 								d = [cloud[i].getDist(cloud[j]), cloud[i].getDist(cloud[k]), cloud[j].getDist(cloud[k])];
-								let x1 = d[0];																					//ab
-								let x2 = (Math.pow(d[1], 2) - Math.pow(d[2], 2) + Math.pow(d[0], 2)) / (2 * d[0]);				//(ac^2-bc^2+ab^2)/(2*ab)
-								let y2 = Math.sqrt(Math.pow(d[1], 2) - Math.pow(x2, 2));										//√(ac^2-xc^2
+								let x1 = d[0];				
+								let x2 = (Math.pow(d[1], 2) - Math.pow(d[2], 2) + Math.pow(d[0], 2)) / (2 * d[0]);
+								let y2 = Math.sqrt(Math.pow(d[1], 2) - Math.pow(x2, 2));
 								for (let m = 0; m < cloud.length; m++) {
 									if (m != i && m != j && m != k) {
 										let d2 = [cloud[i].getDist(cloud[m]), cloud[j].getDist(cloud[m]), cloud[k].getDist(cloud[m])];
